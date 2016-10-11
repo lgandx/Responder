@@ -23,8 +23,8 @@ import struct
 def WorkstationFingerPrint(data):
 	return {
 		"\x04\x00"    :"Windows 95",
-		"\x04\x10"    :"Windows 98",
-		"\x04\x90"    :"Windows ME",
+		"\x04\x0A"    :"Windows 98",
+		"\x04\x5A"    :"Windows ME",
 		"\x05\x00"    :"Windows 2000",
 		"\x05\x01"    :"Windows XP",
 		"\x05\x02"    :"Windows XP(64-Bit)/Windows 2003",
@@ -32,7 +32,7 @@ def WorkstationFingerPrint(data):
 		"\x06\x01"    :"Windows 7/Server 2008R2",
 		"\x06\x02"    :"Windows 8/Server 2012",
 		"\x06\x03"    :"Windows 8.1/Server 2012R2",
-		"\x10\x00"    :"Windows 10/Server 2016",
+		"\x0A\x00"    :"Windows 10/Server 2016",
 	}.get(data, 'Unknown')
 
 

@@ -176,7 +176,7 @@ def SaveToDb(result):
 		with open(logfile,"a") as outf:
 			if len(result['cleartext']):  # If we obtained cleartext credentials, write them to file
 				outf.write('%s:%s\n' % (result['user'].encode('utf8', 'replace'), result['cleartext'].encode('utf8', 'replace')))
-			else:  # Otherwise, write JtR-style hash string to file
+			else:  # Otherwise, write JtR-style hash string to filed
 				outf.write(result['fullhash'].encode('utf8', 'replace') + '\n')
 
 	if not count or settings.Config.Verbose:  # Print output

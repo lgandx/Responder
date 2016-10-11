@@ -149,7 +149,7 @@ class Settings:
 		# Auto Ignore List
 		self.AutoIgnore                       = self.toBool(config.get('Responder Core', 'AutoIgnoreAfterSuccess'))
 		self.CaptureMultipleCredentials       = self.toBool(config.get('Responder Core', 'CaptureMultipleCredentials'))
-                self.CaptureMultipleHashFromSameHost  = self.toBool(config.get('Responder Core', 'CaptureMultipleHashFromSameHost'))
+		self.CaptureMultipleHashFromSameHost  = self.toBool(config.get('Responder Core', 'CaptureMultipleHashFromSameHost'))
 		self.AutoIgnoreList                   = []
 
 		# CLI options
@@ -169,13 +169,13 @@ class Settings:
 		self.ProxyAuth_On_Off   = options.ProxyAuth_On_Off
 		self.CommandLine        = str(sys.argv)
 
-                if self.ExternalIP:
-                        self.ExternalIPAton = socket.inet_aton(self.ExternalIP)
+		if self.ExternalIP:
+				self.ExternalIPAton = socket.inet_aton(self.ExternalIP)
 
 		if self.HtmlToInject is None:
 			self.HtmlToInject = ''
 
-                self.Bind_To = utils.FindLocalIP(self.Interface, self.OURIP)
+		self.Bind_To = utils.FindLocalIP(self.Interface, self.OURIP)
 		self.IP_aton         = socket.inet_aton(self.Bind_To)
 		self.Os_version      = sys.platform
 
@@ -208,12 +208,12 @@ class Settings:
 		self.AnalyzeLogger = logging.getLogger('Analyze Log')
 		self.AnalyzeLogger.addHandler(ALog_Handler)
                 
-                NetworkCard = subprocess.check_output(["ifconfig", "-a"])
-                DNS = subprocess.check_output(["cat", "/etc/resolv.conf"])
-                RoutingInfo = subprocess.check_output(["netstat", "-rn"])
-                Message = "Current environment is:\nNetwork Config:\n%s\nDNS Settings:\n%s\nRouting info:\n%s\n\n"%(NetworkCard,DNS,RoutingInfo)
-                utils.DumpConfig(self.ResponderConfigDump, Message)
-                utils.DumpConfig(self.ResponderConfigDump,str(self))
+		NetworkCard = subprocess.check_output(["ifconfig", "-a"])
+		DNS = subprocess.check_output(["cat", "/etc/resolv.conf"])
+		RoutingInfo = subprocess.check_output(["netstat", "-rn"])
+		Message = "Current environment is:\nNetwork Config:\n%s\nDNS Settings:\n%s\nRouting info:\n%s\n\n"%(NetworkCard,DNS,RoutingInfo)
+		utils.DumpConfig(self.ResponderConfigDump, Message)
+		utils.DumpConfig(self.ResponderConfigDump,str(self))
 
 def init():
 	global Config

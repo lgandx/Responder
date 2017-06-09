@@ -21,12 +21,16 @@ from socket import *
 from odict import OrderedDict
 import optparse
 
-__version__ = "0.7"
+__version__ = "0.8"
 
 parser = optparse.OptionParser(usage='python %prog -i 10.10.10.224\nor:\npython %prog -i 10.10.10.0/24', version=__version__, prog=sys.argv[0])
 
-parser.add_option('-i','--ip', action="store", help="Target IP address or class C", dest="TARGET", metavar="10.10.10.224", default=None)
-parser.add_option('-g','--grep', action="store_true", dest="Grep", default=False, help="Output in grepable format")
+parser.add_option('-i','--ip', action="store", help="Target IP address or class C",\
+ dest="TARGET", metavar="10.10.10.224", default=None)
+parser.add_option('-g','--grep', action="store_true", dest="Grep", default=False, \
+  help="Output in grepable format")
+parser.add_option('-f','--false', action="store_true", dest="SigningFalse", default=False, \
+  help="Displays IPs with SMB Signing False & saves to targets_(TimeStamp).txt")
 options, args = parser.parse_args()
 
 if options.TARGET is None:
@@ -37,6 +41,7 @@ if options.TARGET is None:
 Timeout = 2
 Host = options.TARGET
 Grep = options.Grep
+SigningFalse = options.SigningFalse
 
 class Packet():
     fields = OrderedDict([
@@ -264,6 +269,38 @@ def ShowSmallResults(Host):
     except:
        pass
 
+def writeFile(Host):
+  with open('targets.txt', 'a') as f:
+    f.write(Host[0])
+
+def ShowSmbFalse(Host):
+  timeStamp = datetime.datetime.now().strftime("%m_%d_%y_%H_%M")
+  filename = 'targets_'+timeStamp+'.txt'
+
+  s = socket(AF_INET, SOCK_STREAM)
+  try:
+     s.settimeout(Timeout)
+     s.connect(Host)
+  except:
+     return False
+
+  try:
+     Hostname, DomainJoined, Time = DomainGrab(Host)
+     Signing, OsVer, LanManClient = SmbFinger(Host)
+     if Signing == False:
+      print(Host[0])
+      with open(filename, 'a') as f:
+        f.write(Host[0]+'\n')
+  except:
+     pass
+
+
+def IsSigningFalse():
+    if options.SigningFalse:
+       return True
+    else:
+       return False
+
 def IsGrepable():
     if options.Grep:
        return True
@@ -282,13 +319,20 @@ def RunFinger(Host):
               p = multiprocessing.Process(target=ShowSmallResults, args=((host,445),))
               threads.append(p)
               p.start()
+           elif IsSigningFalse():
+               p = multiprocessing.Process(target=ShowSmbFalse, args=((host,445),))
+               threads.append(p)
+               p.start()
            else:
               p = multiprocessing.Process(target=ShowResults, args=((host,445),))
               threads.append(p)
               p.start()
     else:
+
       if IsGrepable():
           ShowSmallResults((Host,445))
+      elif IsSigningFalse():
+        ShowSmbFalse((Host,445))
       else:
           ShowResults((Host,445))
 

@@ -27,7 +27,8 @@ parser = optparse.OptionParser(usage='python %prog -i 10.10.10.224\nor:\npython 
 
 parser.add_option('-i','--ip', action="store", help="Target IP address or class C", dest="TARGET", metavar="10.10.10.224", default=None)
 parser.add_option('-g','--grep', action="store_true", dest="Grep", default=False, help="Output in grepable format")
-options, args = parser.parse_args()
+parser.add_option('-f','--false', action="store_true", dest="SigningFalse", default=False, help="Outputs IPs with SMB Signing False.")
+options, args = parser.parse_args()s
 
 if options.TARGET is None:
     print "\n-i Mandatory option is missing, please provide a target or target range.\n"
@@ -37,6 +38,7 @@ if options.TARGET is None:
 Timeout = 2
 Host = options.TARGET
 Grep = options.Grep
+SigningFalse = options.SigningFalse
 
 class Packet():
     fields = OrderedDict([
@@ -264,6 +266,30 @@ def ShowSmallResults(Host):
     except:
        pass
 
+def ShowSmbFalse(Host):
+  s = socket(AF_INET, SOCK_STREAM)
+  try:
+     s.settimeout(Timeout)
+     s.connect(Host)
+  except:
+     return False
+
+  try:
+     Hostname, DomainJoined, Time = DomainGrab(Host)
+     Signing, OsVer, LanManClient = SmbFinger(Host)
+     Message = "['%s', Os:'%s', Domain:'%s', Signing:'%s', Time:'%s']"%(Host[0], OsVer, DomainJoined, Signing, Time[1])
+     if Signing == False:
+      print(Host[0])
+  except:
+     pass
+
+
+def IsSigningFalse():
+    if options.SigningFalse:
+       return True
+    else:
+       return False
+
 def IsGrepable():
     if options.Grep:
        return True
@@ -282,13 +308,20 @@ def RunFinger(Host):
               p = multiprocessing.Process(target=ShowSmallResults, args=((host,445),))
               threads.append(p)
               p.start()
+           elif IsSigningFalse():
+               p = multiprocessing.Process(target=ShowSmbFalse, args=((host,445),))
+               threads.append(p)
+               p.start()
            else:
               p = multiprocessing.Process(target=ShowResults, args=((host,445),))
               threads.append(p)
               p.start()
     else:
+
       if IsGrepable():
           ShowSmallResults((Host,445))
+      elif IsSigningFalse():
+        ShowSmbFalse((Host,445))
       else:
           ShowResults((Host,445))
 

@@ -21,14 +21,17 @@ from socket import *
 from odict import OrderedDict
 import optparse
 
-__version__ = "0.7"
+__version__ = "0.8"
 
 parser = optparse.OptionParser(usage='python %prog -i 10.10.10.224\nor:\npython %prog -i 10.10.10.0/24', version=__version__, prog=sys.argv[0])
 
-parser.add_option('-i','--ip', action="store", help="Target IP address or class C", dest="TARGET", metavar="10.10.10.224", default=None)
-parser.add_option('-g','--grep', action="store_true", dest="Grep", default=False, help="Output in grepable format")
-parser.add_option('-f','--false', action="store_true", dest="SigningFalse", default=False, help="Outputs IPs with SMB Signing False.")
-options, args = parser.parse_args()s
+parser.add_option('-i','--ip', action="store", help="Target IP address or class C",\
+ dest="TARGET", metavar="10.10.10.224", default=None)
+parser.add_option('-g','--grep', action="store_true", dest="Grep", default=False, \
+  help="Output in grepable format")
+parser.add_option('-f','--false', action="store_true", dest="SigningFalse", default=False, \
+  help="Displays IPs with SMB Signing False & saves to targets_(TimeStamp).txt")
+options, args = parser.parse_args()
 
 if options.TARGET is None:
     print "\n-i Mandatory option is missing, please provide a target or target range.\n"
@@ -266,7 +269,14 @@ def ShowSmallResults(Host):
     except:
        pass
 
+def writeFile(Host):
+  with open('targets.txt', 'a') as f:
+    f.write(Host[0])
+
 def ShowSmbFalse(Host):
+  timeStamp = datetime.datetime.now().strftime("%m_%d_%y_%H_%M")
+  filename = 'targets_'+timeStamp+'.txt'
+
   s = socket(AF_INET, SOCK_STREAM)
   try:
      s.settimeout(Timeout)
@@ -277,9 +287,10 @@ def ShowSmbFalse(Host):
   try:
      Hostname, DomainJoined, Time = DomainGrab(Host)
      Signing, OsVer, LanManClient = SmbFinger(Host)
-     Message = "['%s', Os:'%s', Domain:'%s', Signing:'%s', Time:'%s']"%(Host[0], OsVer, DomainJoined, Signing, Time[1])
      if Signing == False:
       print(Host[0])
+      with open(filename, 'a') as f:
+        f.write(Host[0]+'\n')
   except:
      pass
 

@@ -233,9 +233,12 @@ class Settings:
 		except:
 			try:
 				NetworkCard = subprocess.check_output(["ip", "address", "show"])
-			except subprocess.CalledProcessError as ex:
-				NetworkCard = "Error fetching Network Interfaces:", ex
-				pass
+			except:
+				try:
+					NetworkCard = subprocess.check_output(["ipconfig"])
+				except subprocess.CalledProcessError as ex:
+					NetworkCard = "Error fetching Network Interfaces:", ex
+					pass
 		try:
 			DNS = subprocess.check_output(["cat", "/etc/resolv.conf"])
 		except subprocess.CalledProcessError as ex:

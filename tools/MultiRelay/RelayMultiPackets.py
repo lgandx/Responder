@@ -388,20 +388,20 @@ class SMBSessionSetupAndxAUTH(Packet):
         SecurityBlobLen = str(self.fields["ApplicationHeaderTag"])+str(self.fields["ApplicationHeaderTagLenOfLen"])+str(self.fields["ApplicationHeaderLen"])+str(self.fields["AsnSecMechType"])+str(self.fields["AsnSecMechLenOfLen"])+str(self.fields["AsnSecMechLen"])+str(self.fields["ChoosedTag"])+str(self.fields["ChoosedTagLenOfLen"])+str(self.fields["ChoosedTagLen"])+str(self.fields["ChoosedTag1"])+str(self.fields["ChoosedTag1StrLenOfLen"])+str(self.fields["ChoosedTag1StrLen"])+str(self.fields["Data"])
 
         NTLMData = str(self.fields["Data"])
-	###### ASN Stuff
+        ###### ASN Stuff
         if len(NTLMData) > 255:
-	   self.fields["ApplicationHeaderTagLenOfLen"] = "\x82"
-	   self.fields["ApplicationHeaderLen"] = struct.pack(">H", len(SecurityBlobLen)-0)
+           self.fields["ApplicationHeaderTagLenOfLen"] = "\x82"
+           self.fields["ApplicationHeaderLen"] = struct.pack(">H", len(SecurityBlobLen)-0)
         else:
            self.fields["ApplicationHeaderTagLenOfLen"] = "\x81"
-	   self.fields["ApplicationHeaderLen"] = struct.pack(">B", len(SecurityBlobLen)-3)
+           self.fields["ApplicationHeaderLen"] = struct.pack(">B", len(SecurityBlobLen)-3)
 
         if len(NTLMData)-8 > 255:
            self.fields["AsnSecMechLenOfLen"] = "\x82"
-	   self.fields["AsnSecMechLen"] = struct.pack(">H", len(SecurityBlobLen)-4)
+           self.fields["AsnSecMechLen"] = struct.pack(">H", len(SecurityBlobLen)-4)
         else:
            self.fields["AsnSecMechLenOfLen"] = "\x81"
-	   self.fields["AsnSecMechLen"] = struct.pack(">B", len(SecurityBlobLen)-6)
+           self.fields["AsnSecMechLen"] = struct.pack(">B", len(SecurityBlobLen)-6)
 
         if len(NTLMData)-12 > 255:
            self.fields["ChoosedTagLenOfLen"] = "\x82"

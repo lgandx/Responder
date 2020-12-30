@@ -126,7 +126,7 @@ class SMBNegoDataLanMan(Packet):
 #####################
 
 def color(txt, code = 1, modifier = 0):
-	return "\033[%d;3%dm%s\033[0m" % (modifier, code, txt)
+        return "\033[%d;3%dm%s\033[0m" % (modifier, code, txt)
 
 def IsSigningEnabled(data): 
     if data[39] == "\x0f":
@@ -141,27 +141,27 @@ def dtoa(d):
     return inet_ntoa(struct.pack("!L", d))
 
 def OsNameClientVersion(data):
-	try:
-		length = struct.unpack('<H',data[43:45])[0]
+        try:
+                length = struct.unpack('<H',data[43:45])[0]
                 if length > 255:
-		   OsVersion, ClientVersion = tuple([e.replace('\x00','') for e in data[48+length:].split('\x00\x00\x00')[:2]])
-		   return OsVersion, ClientVersion
+                   OsVersion, ClientVersion = tuple([e.replace('\x00','') for e in data[48+length:].split('\x00\x00\x00')[:2]])
+                   return OsVersion, ClientVersion
                 if length <= 255:
-		   OsVersion, ClientVersion = tuple([e.replace('\x00','') for e in data[47+length:].split('\x00\x00\x00')[:2]])
-		   return OsVersion, ClientVersion
-	except:
-	 	return "Could not fingerprint Os version.", "Could not fingerprint LanManager Client version"
+                   OsVersion, ClientVersion = tuple([e.replace('\x00','') for e in data[47+length:].split('\x00\x00\x00')[:2]])
+                   return OsVersion, ClientVersion
+        except:
+                return "Could not fingerprint Os version.", "Could not fingerprint LanManager Client version"
 
 def GetHostnameAndDomainName(data):
-	try:
-		DomainJoined, Hostname = tuple([e.replace('\x00','') for e in data[81:].split('\x00\x00\x00')[:2]])
+        try:
+                DomainJoined, Hostname = tuple([e.replace('\x00','') for e in data[81:].split('\x00\x00\x00')[:2]])
                 #If max length domain name, there won't be a \x00\x00\x00 delineator to split on
-		if Hostname == '':
-			DomainJoined = data[81:110].replace('\x00','')
-			Hostname = data[113:].replace('\x00','')
-		return Hostname, DomainJoined
-	except:
-	 	return "Could not get Hostname.", "Could not get Domain joined"
+                if Hostname == '':
+                        DomainJoined = data[81:110].replace('\x00','')
+                        Hostname = data[113:].replace('\x00','')
+                return Hostname, DomainJoined
+        except:
+                return "Could not get Hostname.", "Could not get Domain joined"
 
 def DomainGrab(Host):
     s = socket(AF_INET, SOCK_STREAM)
@@ -169,7 +169,7 @@ def DomainGrab(Host):
        s.settimeout(Timeout)
        s.connect(Host)
     except:
-       print "Host down or port close, skipping"
+       print ("Host down or port close, skipping")
        pass
     try:
        h = SMBHeaderLanMan(cmd="\x72",mid="\x01\x00",flag1="\x00", flag2="\x00\x00")
@@ -191,7 +191,7 @@ def SmbFinger(Host):
        s.settimeout(Timeout)
        s.connect(Host)
     except:
-       print "Host down or port close, skipping"
+       print ("Host down or port close, skipping")
        pass
     try:     
        h = SMBHeader(cmd="\x72",flag1="\x18",flag2="\x53\xc8")
@@ -252,10 +252,10 @@ def ShowResults(Host):
        Signing, OsVer, LanManClient = SmbFinger(Host)
        enabled  = color("SMB signing is mandatory. Choose another target", 1, 1)
        disabled = color("SMB signing: False", 2, 1)
-       print color("Retrieving information for %s..."%Host[0], 8, 1)
-       print enabled if Signing else disabled
-       print color("Os version: '%s'"%(OsVer), 8, 3)
-       print color("Hostname: '%s'\nPart of the '%s' domain"%(Hostname, DomainJoined), 8, 3)
+       print (color("Retrieving information for %s..."%Host[0], 8, 1))
+       print (enabled if Signing else disabled)
+       print (color("Os version: '%s'"%(OsVer), 8, 3))
+       print (color("Hostname: '%s'\nPart of the '%s' domain"%(Hostname, DomainJoined), 8, 3))
     except:
        pass
 
@@ -288,7 +288,7 @@ def ShowScanSmallResults(Host):
        Hostname, DomainJoined = DomainGrab(Host)
        Signing, OsVer, LanManClient = SmbFinger(Host)
        Message ="['%s', Os:'%s', Domain:'%s', Signing:'%s']"%(Host[0], OsVer, DomainJoined, Signing)
-       print Message
+       print (Message)
     except:
        pass
 
@@ -299,13 +299,13 @@ def ShowSigning(Host):
        s.settimeout(Timeout)
        s.connect((Host, 445))
     except:
-       print "[Pivot Verification Failed]: Target host is down" 
+       print ("[Pivot Verification Failed]: Target host is down" )
        return True
 
     try:
        Signing = SmbFingerSigning(Host)
        if Signing == True:
-          print "[Pivot Verification Failed]:Signing is enabled. Choose another host."
+          print ("[Pivot Verification Failed]:Signing is enabled. Choose another host.")
           return True
        else:
           return False

@@ -209,6 +209,7 @@ class SMB1(BaseRequestHandler):  # SMB1 & SMB2 Server class, NTLMSSP
 						raise
 						pass
 
+				setup2MessageId = None
                                 ##Negotiate proto answer SMBv2.
 				if data[8:10] == b"\x72\x00" and re.search(b"SMB 2.\?\?\?", data):
 					head = SMB2Header(CreditCharge="\x00\x00",Credits="\x01\x00")
@@ -230,6 +231,7 @@ class SMB1(BaseRequestHandler):  # SMB1 & SMB2 Server class, NTLMSSP
 					data = self.request.recv(1024)
                                 ## Session Setup 2 answer SMBv2.
 				if data[16:18] == b"\x01\x00" and data[4:5] == b"\xfe":
+					setup2MessageId = GrabMessageID(data)[0:1]
 					head = SMB2Header(Cmd="\x01\x00", MessageId=GrabMessageID(data).decode('latin-1'), PID="\xff\xfe\x00\x00", CreditCharge=GrabCreditCharged(data).decode('latin-1'), Credits=GrabCreditRequested(data).decode('latin-1'), SessionID=GrabSessionID(data).decode('latin-1'),NTStatus="\x16\x00\x00\xc0")
 					t = SMB2Session1Data(NTLMSSPNtServerChallenge=NetworkRecvBufferPython2or3(Challenge))
 					t.calculate()
@@ -238,7 +240,7 @@ class SMB1(BaseRequestHandler):  # SMB1 & SMB2 Server class, NTLMSSP
 					self.request.send(NetworkSendBufferPython2or3(buffer1))
 					data = self.request.recv(1024)
                                 ## Session Setup 3 answer SMBv2.
-				if data[16:18] == b'\x01\x00' and GrabMessageID(data)[0:1] == b'\x02' and data[4:5] == b'\xfe':
+				if data[16:18] == b'\x01\x00' and setup2MessageId is not None and ord(GrabMessageID(data)[0:1]) == ord(setup2MessageId)+1 and data[4:5] == b'\xfe':
 					ParseSMBHash(data, self.client_address[0], Challenge)
 					head = SMB2Header(Cmd="\x01\x00", MessageId=GrabMessageID(data).decode('latin-1'), PID="\xff\xfe\x00\x00", CreditCharge=GrabCreditCharged(data).decode('latin-1'), Credits=GrabCreditRequested(data).decode('latin-1'), NTStatus="\x22\x00\x00\xc0", SessionID=GrabSessionID(data).decode('latin-1'))
 					t = SMB2Session2Data()

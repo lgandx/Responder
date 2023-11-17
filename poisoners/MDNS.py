@@ -61,13 +61,14 @@ class MDNS(BaseRequestHandler):
 			return None
 
 		if settings.Config.AnalyzeMode:  # Analyze Mode
-			print(text('[Analyze mode: MDNS] Request by %-15s for %s, ignoring' % (color(self.client_address[0].replace("::ffff:",""), 3), color(Request_Name, 3))))
-			SavePoisonersToDb({
-						'Poisoner': 'MDNS', 
-						'SentToIp': self.client_address[0], 
-						'ForName': Request_Name,
-						'AnalyzeMode': '1',
-					})
+			if not settings.Config.Quiet_Mode:
+				print(text('[Analyze mode: MDNS] Request by %-15s for %s, ignoring' % (color(self.client_address[0].replace("::ffff:",""), 3), color(Request_Name, 3))))
+				SavePoisonersToDb({
+							'Poisoner': 'MDNS', 
+							'SentToIp': self.client_address[0], 
+							'ForName': Request_Name,
+							'AnalyzeMode': '1',
+						})
 		elif MDNSType == True:  # Poisoning Mode
 			Poisoned_Name = Poisoned_MDNS_Name(data)
 			Buffer = MDNS_Ans(AnswerName = Poisoned_Name)

@@ -63,14 +63,15 @@ class LLMNR(BaseRequestHandler):  # LLMNR Server class
 			#IPv4
 			if data[2:4] == b'\x00\x00' and LLMNRType:
 				if settings.Config.AnalyzeMode:
-					LineHeader = "[Analyze mode: LLMNR]"
-					print(color("%s Request by %s for %s, ignoring" % (LineHeader, self.client_address[0].replace("::ffff:",""), Name), 2, 1))
-					SavePoisonersToDb({
-							'Poisoner': 'LLMNR', 
-							'SentToIp': self.client_address[0], 
-							'ForName': Name,
-							'AnalyzeMode': '1',
-							})
+					if not settings.Config.Quiet_Mode:
+						LineHeader = "[Analyze mode: LLMNR]"
+						print(color("%s Request by %s for %s, ignoring" % (LineHeader, self.client_address[0].replace("::ffff:",""), Name), 2, 1))
+						SavePoisonersToDb({
+								'Poisoner': 'LLMNR', 
+								'SentToIp': self.client_address[0], 
+								'ForName': Name,
+								'AnalyzeMode': '1',
+								})
 
 				elif LLMNRType == True:  # Poisoning Mode
 					Buffer1 = LLMNR_Ans(Tid=NetworkRecvBufferPython2or3(data[0:2]), QuestionName=Name, AnswerName=Name)

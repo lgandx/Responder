@@ -16,6 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from packets import LLMNR_Ans, LLMNR6_Ans
 from utils import *
+import datetime
 
 if (sys.version_info > (3, 0)):
 	from socketserver import BaseRequestHandler
@@ -62,6 +63,7 @@ class LLMNR(BaseRequestHandler):  # LLMNR Server class
 				return None
 			#IPv4
 			if data[2:4] == b'\x00\x00' and LLMNRType:
+				LineHeader = "[*] [LLMNR]"
 				if settings.Config.AnalyzeMode:
 					LineHeader = "[Analyze mode: LLMNR]"
 					print(color("%s Request by %s for %s, ignoring" % (LineHeader, self.client_address[0].replace("::ffff:",""), Name), 2, 1))
@@ -76,9 +78,11 @@ class LLMNR(BaseRequestHandler):  # LLMNR Server class
 					Buffer1 = LLMNR_Ans(Tid=NetworkRecvBufferPython2or3(data[0:2]), QuestionName=Name, AnswerName=Name)
 					Buffer1.calculate()
 					soc.sendto(NetworkSendBufferPython2or3(Buffer1), self.client_address)
+
 					if not settings.Config.Quiet_Mode:
-						LineHeader = "[*] [LLMNR]"
-						print(color("%s  Poisoned answer sent to %s for name %s" % (LineHeader, self.client_address[0].replace("::ffff:",""), Name), 2, 1))
+						
+						print(color("%s %s  Poisoned answer sent to %s for name %s" % (LineHeader, datetime.datetime.now().strftime("%d-%b-%Y (%H:%M:%S)"), self.client_address[0].replace("::ffff:",""), Name), 2, 1))
+            
 					SavePoisonersToDb({
 							'Poisoner': 'LLMNR', 
 							'SentToIp': self.client_address[0], 
@@ -90,9 +94,11 @@ class LLMNR(BaseRequestHandler):  # LLMNR Server class
 					Buffer1 = LLMNR6_Ans(Tid=NetworkRecvBufferPython2or3(data[0:2]), QuestionName=Name, AnswerName=Name)
 					Buffer1.calculate()
 					soc.sendto(NetworkSendBufferPython2or3(Buffer1), self.client_address)
+
 					if not settings.Config.Quiet_Mode:
-						LineHeader = "[*] [LLMNR]"
-						print(color("%s  Poisoned answer sent to %s for name %s" % (LineHeader, self.client_address[0].replace("::ffff:",""), Name), 2, 1))
+						
+						print(color("%s %s  Poisoned answer sent to %s for name %s" % (LineHeader, datetime.datetime.now().strftime("%d-%b-%Y (%H:%M:%S)"), self.client_address[0].replace("::ffff:",""), Name), 2, 1))
+
 					SavePoisonersToDb({
 							'Poisoner': 'LLMNR6', 
 							'SentToIp': self.client_address[0], 

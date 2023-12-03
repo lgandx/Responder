@@ -16,6 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from utils import *
 from packets import DNS_Ans, DNS_SRV_Ans, DNS6_Ans, DNS_AnsOPT
+import datetime
 if settings.Config.PY2OR3 == "PY3":
 	from socketserver import BaseRequestHandler
 else:
@@ -44,40 +45,46 @@ class DNS(BaseRequestHandler):
 
 		try:
 			data, soc = self.request
+			LineHeader = "[*] [DNS]"
 			if ParseDNSType(NetworkRecvBufferPython2or3(data)) == "A":
 				buff = DNS_Ans()
 				buff.calculate(NetworkRecvBufferPython2or3(data))
 				soc.sendto(NetworkSendBufferPython2or3(buff), self.client_address)
 				ResolveName = re.sub('[^0-9a-zA-Z]+', '.', buff.fields["QuestionName"])
-				print(color("[*] [DNS] A Record poisoned answer sent to: %-15s  Requested name: %s" % (self.client_address[0].replace("::ffff:",""), ResolveName), 2, 1))
+				
+				print(color("%s %s A Record poisoned answer sent to: %-15s  Requested name: %s" % (LineHeader,datetime.datetime.now().strftime("%d-%b-%Y (%H:%M:%S)"),self.client_address[0].replace("::ffff:",""), ResolveName), 2, 1))
 
 			if ParseDNSType(NetworkRecvBufferPython2or3(data)) == "OPTIPv4":
 				buff = DNS_AnsOPT()
 				buff.calculate(NetworkRecvBufferPython2or3(data))
 				soc.sendto(NetworkSendBufferPython2or3(buff), self.client_address)
 				ResolveName = re.sub('[^0-9a-zA-Z]+', '.', buff.fields["QuestionName"])
-				print(color("[*] [DNS] A OPT Record poisoned answer sent to: %-15s  Requested name: %s" % (self.client_address[0].replace("::ffff:",""), ResolveName), 2, 1))
+				
+				print(color("%s %s A OPT Record poisoned answer sent to: %-15s  Requested name: %s" % (LineHeader,datetime.datetime.now().strftime("%d-%b-%Y (%H:%M:%S)"),self.client_address[0].replace("::ffff:",""), ResolveName), 2, 1))
 				
 			if ParseDNSType(NetworkRecvBufferPython2or3(data)) == "SRV":
 				buff = DNS_SRV_Ans()
 				buff.calculate(NetworkRecvBufferPython2or3(data))
 				soc.sendto(NetworkSendBufferPython2or3(buff), self.client_address)
 				ResolveName = re.sub('[^0-9a-zA-Z]+', '.', buff.fields["QuestionName"])
-				print(color("[*] [DNS] SRV Record poisoned answer sent to: %-15s  Requested name: %s" % (self.client_address[0].replace("::ffff:",""), ResolveName), 2, 1))
+				
+				print(color("%s %s SRV Record poisoned answer sent to: %-15s  Requested name: %s" % (LineHeader,datetime.datetime.now().strftime("%d-%b-%Y (%H:%M:%S)"),self.client_address[0].replace("::ffff:",""), ResolveName), 2, 1))
 
 			if ParseDNSType(NetworkRecvBufferPython2or3(data)) == "IPv6":
 				buff = DNS6_Ans()
 				buff.calculate(NetworkRecvBufferPython2or3(data))
 				soc.sendto(NetworkSendBufferPython2or3(buff), self.client_address)
 				ResolveName = re.sub('[^0-9a-zA-Z]+', '.', buff.fields["QuestionName"])
-				print(color("[*] [DNS] AAAA Record poisoned answer sent to: %-15s  Requested name: %s" % (self.client_address[0].replace("::ffff:",""), ResolveName), 2, 1))
+				
+				print(color("%s %s AAAA Record poisoned answer sent to: %-15s  Requested name: %s" % (LineHeader,datetime.datetime.now().strftime("%d-%b-%Y (%H:%M:%S)"),self.client_address[0].replace("::ffff:",""), ResolveName), 2, 1))
 
 			if ParseDNSType(NetworkRecvBufferPython2or3(data)) == "OPTIPv6":
 				buff = DNS6_Ans()
 				buff.calculate(NetworkRecvBufferPython2or3(data))
 				soc.sendto(NetworkSendBufferPython2or3(buff), self.client_address)
 				ResolveName = re.sub('[^0-9a-zA-Z]+', '.', buff.fields["QuestionName"])
-				print(color("[*] [DNS] AAAA OPT Record poisoned answer sent to: %-15s  Requested name: %s" % (self.client_address[0].replace("::ffff:",""), ResolveName), 2, 1))
+				
+				print(color("%s %s AAAA OPT Record poisoned answer sent to: %-15s  Requested name: %s" % (LineHeader,datetime.datetime.now().strftime("%d-%b-%Y (%H:%M:%S)"),self.client_address[0].replace("::ffff:",""), ResolveName), 2, 1))
 
 
 		except Exception:
@@ -92,40 +99,46 @@ class DNSTCP(BaseRequestHandler):
 	
 		try:
 			data = self.request.recv(1024)
+			LineHeader = "[*] [DNS]"
 			if ParseDNSType(NetworkRecvBufferPython2or3(data)) == "A":
 				buff = DNS_Ans()
 				buff.calculate(NetworkRecvBufferPython2or3(data))
 				self.request.send(NetworkSendBufferPython2or3(buff))
 				ResolveName = re.sub('[^0-9a-zA-Z]+', '.', buff.fields["QuestionName"])
-				print(color("[*] [DNS] A Record poisoned answer sent to: %-15s  Requested name: %s" % (self.client_address[0].replace("::ffff:",""), ResolveName), 2, 1))
+				
+				print(color("%s %s A Record poisoned answer sent to: %-15s  Requested name: %s" % (LineHeader,datetime.datetime.now().strftime("%d-%b-%Y (%H:%M:%S)"),self.client_address[0].replace("::ffff:",""), ResolveName), 2, 1))
 
 			if ParseDNSType(NetworkRecvBufferPython2or3(data)) == "OPTIPv4":
 				buff = DNS_AnsOPT()
 				buff.calculate(NetworkRecvBufferPython2or3(data))
 				self.request.send(NetworkSendBufferPython2or3(buff))
 				ResolveName = re.sub('[^0-9a-zA-Z]+', '.', buff.fields["QuestionName"])
-				print(color("[*] [DNS] A OPT Record poisoned answer sent to: %-15s  Requested name: %s" % (self.client_address[0].replace("::ffff:",""), ResolveName), 2, 1))
+				
+				print(color("%s %s A OPT Record poisoned answer sent to: %-15s  Requested name: %s" % (LineHeader,datetime.datetime.now().strftime("%d-%b-%Y (%H:%M:%S)"),self.client_address[0].replace("::ffff:",""), ResolveName), 2, 1))
 				
 			if ParseDNSType(NetworkRecvBufferPython2or3(data)) == "SRV":
 				buff = DNS_SRV_Ans()
 				buff.calculate(NetworkRecvBufferPython2or3(data))
 				self.request.send(NetworkSendBufferPython2or3(buff))
 				ResolveName = re.sub('[^0-9a-zA-Z]+', '.', buff.fields["QuestionName"])
-				print(color("[*] [DNS] SRV Record poisoned answer sent: %-15s  Requested name: %s" % (self.client_address[0].replace("::ffff:",""), ResolveName), 2, 1))
+				
+				print(color("%s %s SRV Record poisoned answer sent: %-15s  Requested name: %s" % (LineHeader,datetime.datetime.now().strftime("%d-%b-%Y (%H:%M:%S)"),self.client_address[0].replace("::ffff:",""), ResolveName), 2, 1))
 
 			if ParseDNSType(NetworkRecvBufferPython2or3(data)) == "IPv6":
 				buff = DNS6_Ans()
 				buff.calculate(NetworkRecvBufferPython2or3(data))
 				self.request.send(NetworkSendBufferPython2or3(buff))
 				ResolveName = re.sub('[^0-9a-zA-Z]+', '.', buff.fields["QuestionName"])
-				print(color("[*] [DNS] AAAA Record poisoned answer sent: %-15s  Requested name: %s" % (self.client_address[0].replace("::ffff:",""), ResolveName), 2, 1))
+				
+				print(color("%s %s AAAA Record poisoned answer sent: %-15s  Requested name: %s" % (LineHeader,datetime.datetime.now().strftime("%d-%b-%Y (%H:%M:%S)"),self.client_address[0].replace("::ffff:",""), ResolveName), 2, 1))
 
 			if ParseDNSType(NetworkRecvBufferPython2or3(data)) == "OPTIPv6":
 				buff = DNS6_AnsOPT()
 				buff.calculate(NetworkRecvBufferPython2or3(data))
 				self.request.send(NetworkSendBufferPython2or3(buff))
 				ResolveName = re.sub('[^0-9a-zA-Z]+', '.', buff.fields["QuestionName"])
-				print(color("[*] [DNS] AAAA OPT Record poisoned answer sent: %-15s  Requested name: %s" % (self.client_address[0].replace("::ffff:",""), ResolveName), 2, 1))
+				
+				print(color("%s %s AAAA OPT Record poisoned answer sent: %-15s  Requested name: %s" % (LineHeader,datetime.datetime.now().strftime("%d-%b-%Y (%H:%M:%S)"),self.client_address[0].replace("::ffff:",""), ResolveName), 2, 1))
 
 		except Exception:
 			pass

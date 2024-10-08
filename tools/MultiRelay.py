@@ -188,7 +188,6 @@ def UploadContent(File):
 try:
     RunFinger(Host[0])
 except:
-    raise
     print("The host %s seems to be down or port 445 down."%(Host[0]))
     sys.exit(1)
 

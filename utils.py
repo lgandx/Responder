@@ -25,6 +25,7 @@ import datetime
 import codecs
 import struct
 import random
+import psycopg
 try:
 	import netifaces
 except:
@@ -313,7 +314,26 @@ def NetworkRecvBufferPython2or3(data):
 	else:
 		return str(data.decode('latin-1'))
 
-def CreateResponderDb():
+def PsqlConnect():
+	conn = psycopg.connect(dbname=settings.Config.PsqlDatabase,
+							host=settings.Config.PsqlHost,
+							user=settings.Config.PsqlUser,
+							password=settings.Config.PsqlPassword,
+							port=settings.Config.PsqlPort)
+	return conn
+
+def _CreateResponderDbPsql():
+	conn = PsqlConnect()
+	cursor = conn.cursor()
+	cursor.execute('CREATE TABLE IF NOT EXISTS Poisoned (timestamp TIMESTAMP, Poisoner TEXT, SentToIp CIDR, ForName TEXT, AnalyzeMode TEXT)')
+	conn.commit()
+	cursor.execute('CREATE TABLE IF NOT EXISTS responder (timestamp TIMESTAMP, module TEXT, type TEXT, client CIDR, hostname TEXT, username TEXT, cleartext TEXT, hash TEXT, fullhash TEXT)')
+	conn.commit()
+	cursor.execute('CREATE TABLE IF NOT EXISTS DHCP (timestamp TIMESTAMP, MAC MACADDR8, IP CIDR, RequestedIP CIDR)')
+	conn.commit()
+	conn.close()
+
+def _CreateResponderDbSqlite():
 	if not os.path.exists(settings.Config.DatabaseFile):
 		cursor = sqlite3.connect(settings.Config.DatabaseFile)
 		cursor.execute('CREATE TABLE Poisoned (timestamp TEXT, Poisoner TEXT, SentToIp TEXT, ForName TEXT, AnalyzeMode TEXT)')
@@ -323,6 +343,58 @@ def CreateResponderDb():
 		cursor.execute('CREATE TABLE DHCP (timestamp TEXT, MAC TEXT, IP TEXT, RequestedIP TEXT)')
 		cursor.commit()
 		cursor.close()
+
+def CreateResponderDb():
+	if settings.Config.Dbms.lower() == 'psql':
+		_CreateResponderDbPsql()
+	else:
+		_CreateResponderDbSqlite()
+
+
+def _SaveToDbPsql(result):
+	conn = PsqlConnect()
+	cursor = conn.cursor()
+
+	if len(result['cleartext']):
+		cursor.execute("SELECT COUNT(*) AS count FROM responder WHERE module=%s AND type=%s AND client=%s AND LOWER(username)=LOWER(%s) AND cleartext=%s", (result['module'], result['type'], result['client'], result['user'], result['cleartext']))
+	else:
+		cursor.execute("SELECT COUNT(*) AS count FROM responder WHERE module=%s AND type=%s AND client=%s AND LOWER(username)=LOWER(%s)", (result['module'], result['type'], result['client'], result['user']))
+
+	(count,) = cursor.fetchone()
+
+	if not count:
+		cursor.execute("INSERT INTO responder VALUES(NOW(), %s, %s, %s, %s, %s, %s, %s, %s)", (result['module'], result['type'], result['client'], result['hostname'], result['user'], result['cleartext'], result['hash'], result['fullhash']))
+		conn.commit()
+
+	if count and not settings.Config.Verbose and not len(result['cleartext']):
+		print(color('[*] Skipping previously captured hash for %s' % result['user'], 3, 1))
+		text('[*] Skipping previously captured hash for %s' % result['user'])
+		cursor.execute("UPDATE responder SET timestamp=NOW() WHERE user=%s AND client=%s", (result['user'], result['client']))
+		conn.commit()
+	cursor.close()
+	return count
+
+def _SaveToDbSqlite(result):
+	cursor = sqlite3.connect(settings.Config.DatabaseFile)
+	cursor.text_factory = sqlite3.Binary  # We add a text factory to support different charsets
+
+	if len(result['cleartext']):
+		res = cursor.execute("SELECT COUNT(*) AS count FROM responder WHERE module=? AND type=? AND client=? AND LOWER(user)=LOWER(?) AND cleartext=?", (result['module'], result['type'], result['client'], result['user'], result['cleartext']))
+	else:
+		res = cursor.execute("SELECT COUNT(*) AS count FROM responder WHERE module=? AND type=? AND client=? AND LOWER(user)=LOWER(?)", (result['module'], result['type'], result['client'], result['user']))
+
+	(count,) = res.fetchone()
+	if not count:
+		cursor.execute("INSERT INTO responder VALUES(datetime('now'), ?, ?, ?, ?, ?, ?, ?, ?)", (result['module'], result['type'], result['client'], result['hostname'], result['user'], result['cleartext'], result['hash'], result['fullhash']))
+		cursor.commit()
+
+	if count and not settings.Config.Verbose and not len(result['cleartext']):
+		print(color('[*] Skipping previously captured hash for %s' % result['user'], 3, 1))
+		text('[*] Skipping previously captured hash for %s' % result['user'])
+		cursor.execute("UPDATE responder SET timestamp=datetime('now') WHERE user=? AND client=?", (result['user'], result['client']))
+		cursor.commit()
+	cursor.close()
+	return count
 
 def SaveToDb(result):
 
@@ -335,23 +407,16 @@ def SaveToDb(result):
 		text("[*] Skipping one character username: %s" % result['user'])
 		return
 
-	cursor = sqlite3.connect(settings.Config.DatabaseFile)
-	cursor.text_factory = sqlite3.Binary  # We add a text factory to support different charsets
-	
+	if settings.Config.Dbms.lower() == 'psql':
+		count = _SaveToDbPsql(result)
+	else:
+		count = _SaveToDbSqlite(result)
+
 	if len(result['cleartext']):
 		fname = '%s-%s-ClearText-%s.txt' % (result['module'], result['type'], result['client'])
-		res = cursor.execute("SELECT COUNT(*) AS count FROM responder WHERE module=? AND type=? AND client=? AND LOWER(user)=LOWER(?) AND cleartext=?", (result['module'], result['type'], result['client'], result['user'], result['cleartext']))
 	else:
 		fname = '%s-%s-%s.txt' % (result['module'], result['type'], result['client'])
-		res = cursor.execute("SELECT COUNT(*) AS count FROM responder WHERE module=? AND type=? AND client=? AND LOWER(user)=LOWER(?)", (result['module'], result['type'], result['client'], result['user']))
-
-	(count,) = res.fetchone()
 	logfile = os.path.join(settings.Config.ResponderPATH, 'logs', fname)
-
-	if not count:
-		cursor.execute("INSERT INTO responder VALUES(datetime('now'), ?, ?, ?, ?, ?, ?, ?, ?)", (result['module'], result['type'], result['client'], result['hostname'], result['user'], result['cleartext'], result['hash'], result['fullhash']))
-		cursor.commit()
-
 	if not count or settings.Config.CaptureMultipleHashFromSameHost:
 		with open(logfile,"a") as outf:
 			if len(result['cleartext']):  # If we obtained cleartext credentials, write them to file
@@ -387,11 +452,30 @@ def SaveToDb(result):
 	elif len(result['cleartext']):
 		print(color('[*] Skipping previously captured cleartext password for %s' % result['user'], 3, 1))
 		text('[*] Skipping previously captured cleartext password for %s' % result['user'])
-	else:
-		print(color('[*] Skipping previously captured hash for %s' % result['user'], 3, 1))
-		text('[*] Skipping previously captured hash for %s' % result['user'])
-		cursor.execute("UPDATE responder SET timestamp=datetime('now') WHERE user=? AND client=?", (result['user'], result['client']))
+
+def _SavePoisonersToDbPsql(result):
+	conn = PsqlConnect()
+	cursor = conn.cursor()
+
+	cursor.execute("SELECT COUNT(*) AS count FROM Poisoned WHERE Poisoner=%s AND SentToIp=%s AND ForName=%s AND AnalyzeMode=%s", (result['Poisoner'], result['SentToIp'], result['ForName'], result['AnalyzeMode']))
+	(count,) = cursor.fetchone()
+
+	if not count:
+		cursor.execute("INSERT INTO Poisoned VALUES(NOW(), %s, %s, %s, %s)", (result['Poisoner'], result['SentToIp'], result['ForName'], result['AnalyzeMode']))
+		conn.commit()
+
+	cursor.close()
+
+def _SavePoisonersToDbSqlite(result):
+	cursor = sqlite3.connect(settings.Config.DatabaseFile)
+	cursor.text_factory = sqlite3.Binary  # We add a text factory to support different charsets
+	res = cursor.execute("SELECT COUNT(*) AS count FROM Poisoned WHERE Poisoner=? AND SentToIp=? AND ForName=? AND AnalyzeMode=?", (result['Poisoner'], result['SentToIp'], result['ForName'], result['AnalyzeMode']))
+	(count,) = res.fetchone()
+
+	if not count:
+		cursor.execute("INSERT INTO Poisoned VALUES(datetime('now'), ?, ?, ?, ?)", (result['Poisoner'], result['SentToIp'], result['ForName'], result['AnalyzeMode']))
 		cursor.commit()
+
 	cursor.close()
 
 def SavePoisonersToDb(result):
@@ -400,13 +484,32 @@ def SavePoisonersToDb(result):
 		if not k in result:
 			result[k] = ''
 	result['SentToIp'] = result['SentToIp'].replace("::ffff:","")
+
+	if settings.Config.Dbms.lower() == 'psql':
+		_SavePoisonersToDbPsql(result)
+	else:
+		_SavePoisonersToDbSqlite(result)
+
+def _SaveDHCPToDbPsql(result):
+	conn = PsqlConnect()
+	cursor = conn.cursor()
+	cursor.execute("SELECT COUNT(*) AS count FROM DHCP WHERE MAC=%s AND IP=%s AND RequestedIP=%s", (result['MAC'], result['IP'], result['RequestedIP']))
+	(count,) = cursor.fetchone()
+
+	if not count:
+		cursor.execute("INSERT INTO DHCP VALUES(NOW(), %s, %s, %s)", (result['MAC'], result['IP'], result['RequestedIP']))
+		conn.commit()
+
+	cursor.close()
+
+def _SaveDHCPToDbSqlite(result):
 	cursor = sqlite3.connect(settings.Config.DatabaseFile)
 	cursor.text_factory = sqlite3.Binary  # We add a text factory to support different charsets
-	res = cursor.execute("SELECT COUNT(*) AS count FROM Poisoned WHERE Poisoner=? AND SentToIp=? AND ForName=? AND AnalyzeMode=?", (result['Poisoner'], result['SentToIp'], result['ForName'], result['AnalyzeMode']))
+	res = cursor.execute("SELECT COUNT(*) AS count FROM DHCP WHERE MAC=? AND IP=? AND RequestedIP=?", (result['MAC'], result['IP'], result['RequestedIP']))
 	(count,) = res.fetchone()
-        
+
 	if not count:
-		cursor.execute("INSERT INTO Poisoned VALUES(datetime('now'), ?, ?, ?, ?)", (result['Poisoner'], result['SentToIp'], result['ForName'], result['AnalyzeMode']))
+		cursor.execute("INSERT INTO DHCP VALUES(datetime('now'), ?, ?, ?)", (result['MAC'], result['IP'], result['RequestedIP']))
 		cursor.commit()
 
 	cursor.close()
@@ -416,17 +519,11 @@ def SaveDHCPToDb(result):
 		if not k in result:
 			result[k] = ''
 
-	cursor = sqlite3.connect(settings.Config.DatabaseFile)
-	cursor.text_factory = sqlite3.Binary  # We add a text factory to support different charsets
-	res = cursor.execute("SELECT COUNT(*) AS count FROM DHCP WHERE MAC=? AND IP=? AND RequestedIP=?", (result['MAC'], result['IP'], result['RequestedIP']))
-	(count,) = res.fetchone()
-        
-	if not count:
-		cursor.execute("INSERT INTO DHCP VALUES(datetime('now'), ?, ?, ?)", (result['MAC'], result['IP'], result['RequestedIP']))
-		cursor.commit()
+	if settings.Config.Dbms.lower() == 'psql':
+		_SaveDHCPToDbPsql(result)
+	else:
+		_SaveDHCPToDbSqlite(result)
 
-	cursor.close()
-	
 def Parse_IPV6_Addr(data):
 	if data[len(data)-4:len(data)] == b'\x00\x1c\x00\x01':
 		return 'IPv6'

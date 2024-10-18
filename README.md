@@ -16,7 +16,7 @@ Responder is an LLMNR, NBT-NS and MDNS poisoner.
 
 - Built-in SMB Auth server.
 	
-Supports NTLMv1, NTLMv2 hashes with Extended Security NTLMSSP by default. Successfully tested from Windows 95 to Server 2022, Samba and Mac OSX Lion. Clear text password is supported for NT4, and LM hashing downgrade when the --lm option is set. If --disable-ess is set, extended session security will be disabled for NTLMv1 authentication. SMBv2 has also been implemented and is supported by default.
+Supports NTLMv1, NTLMv2 hashes with Extended Security NTLMSSP by default. Successfully tested from Windows 95 to Server 2022, Samba and Mac OS X 10.7 (Lion). Clear text password is supported for NT4, and LM hashing downgrade when the --lm option is set. If --disable-ess is set, extended session security will be disabled for NTLMv1 authentication. SMBv2 has also been implemented and is supported by default.
 
 - Built-in MSSQL Auth server.
 
@@ -101,15 +101,15 @@ Edit this file /etc/NetworkManager/NetworkManager.conf and comment the line: `dn
 
 - This tool is not meant to work on Windows.
 
-- For OSX, please note: Responder must be launched with an IP address for the -i flag (e.g. -i YOUR_IP_ADDR). There is no native support in OSX for custom interface binding. Using -i en1 will not work. Also to run Responder with the best experience, run the following as root:
+- For macOS, please note: Responder must be launched with an IP address for the -i flag (e.g. -i YOUR_IP_ADDR). There is no native support in macOS for custom interface binding. Using -i en1 will not work. Also to run Responder with the best experience, run the following as root:
 
-    launchctl unload /System/Library/LaunchDaemons/com.apple.Kerberos.kdc.plist
+    launchctl bootout system /System/Library/LaunchDaemons/com.apple.Kerberos.kdc.plist
 
-    launchctl unload /System/Library/LaunchDaemons/com.apple.mDNSResponder.plist
+    launchctl bootout system /System/Library/LaunchDaemons/com.apple.mDNSResponder.plist
 
-    launchctl unload /System/Library/LaunchDaemons/com.apple.smbd.plist
+    launchctl bootout system /System/Library/LaunchDaemons/com.apple.smbd.plist
 
-    launchctl unload /System/Library/LaunchDaemons/com.apple.netbiosd.plist
+    launchctl bootout system /System/Library/LaunchDaemons/com.apple.netbiosd.plist
 
 ## Usage ##
 
@@ -133,7 +133,7 @@ Options:
                         Network interface to use, you can use 'ALL' as a
                         wildcard for all interfaces
     -i 10.0.0.21, --ip=10.0.0.21
-                        Local IP to use (only for OSX)
+                        Local IP to use (only for macOS)
     -6 2002:c0a8:f7:1:3ba8:aceb:b1a9:81ed, --externalip6=2002:c0a8:f7:1:3ba8:aceb:b1a9:81ed
                         Poison all requests with another IPv6 address than
                         Responder's one.

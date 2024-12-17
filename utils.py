@@ -401,6 +401,11 @@ def SaveToDb(result):
 	for k in [ 'module', 'type', 'client', 'hostname', 'user', 'cleartext', 'hash', 'fullhash' ]:
 		if not k in result:
 			result[k] = ''
+		if isinstance(result[k], str) and '\x00' in result[k]:
+			# some strings have a mixed encoding in a single string
+			# correct decoding is not possible
+			result[k] = result[k].replace("\x00","")
+
 	result['client'] = result['client'].replace("::ffff:","")
 	if len(result['user']) < 2:
 		print(color('[*] Skipping one character username: %s' % result['user'], 3, 1))

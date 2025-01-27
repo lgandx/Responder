@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# This file is part of Responder, a network take-over set of tools 
+# This file is part of Responder, a network take-over set of tools
 # created and maintained by Laurent Gaffie.
 # email: laurent.gaffie@gmail.com
 # This program is free software: you can redistribute it and/or modify
@@ -28,8 +28,8 @@ import random
 try:
 	import netifaces
 except:
-	sys.exit('You need to install python-netifaces or run Responder with python3...\nTry "apt-get install python-netifaces" or "pip install netifaces"')
-	
+	print('You need to install python-netifaces or run Responder with python3...\nTry "apt-get install python-netifaces" or "pip install netifaces"')
+
 from calendar import timegm
 
 def if_nametoindex2(name):
@@ -41,7 +41,7 @@ def if_nametoindex2(name):
 		return ret
 	else:
 		return socket.if_nametoindex(settings.Config.Interface)
-			
+
 def RandomChallenge():
 	if settings.Config.PY2OR3 == "PY3":
 		if settings.Config.NumChal == "random":
@@ -158,7 +158,7 @@ def RespondWithIPPton():
 			return settings.Config.ExternalIP6Pton.decode('latin-1')
 		else:
 			return settings.Config.IP_Pton6.decode('latin-1')
-			
+
 def RespondWithIP():
 	if settings.Config.ExternalIP:
 		return settings.Config.ExternalIP
@@ -188,8 +188,8 @@ def IsIPv6IP(IP):
 	if ret:
 		return True
 	else:
-		return False	
-	
+		return False
+
 def FindLocalIP(Iface, OURIP):
 	if Iface == 'ALL':
 		return '0.0.0.0'
@@ -197,8 +197,8 @@ def FindLocalIP(Iface, OURIP):
 	try:
 		if IsOsX():
 			return OURIP
-			
-		elif IsIPv6IP(OURIP):	
+
+		elif IsIPv6IP(OURIP):
 			s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 			s.setsockopt(socket.SOL_SOCKET, 25, str(Iface+'\0').encode('utf-8'))
 			s.connect(("127.0.0.1",9))#RFC 863
@@ -206,10 +206,10 @@ def FindLocalIP(Iface, OURIP):
 			s.close()
 			return ret
 
-			
+
 		elif IsIPv6IP(OURIP) == False and OURIP != None:
 			return OURIP
-		
+
 		elif OURIP == None:
 			s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 			s.setsockopt(socket.SOL_SOCKET, 25, str(Iface+'\0').encode('utf-8'))
@@ -217,7 +217,7 @@ def FindLocalIP(Iface, OURIP):
 			ret = s.getsockname()[0]
 			s.close()
 			return ret
-			
+
 	except socket.error:
 		print(color("[!] Error: %s: Interface not found" % Iface, 1))
 		sys.exit(-1)
@@ -232,7 +232,7 @@ def Probe_IPv6_socket():
 		return True
 	except:
 		return False
-		
+
 def FindLocalIP6(Iface, OURIP):
 	if Iface == 'ALL':
 		return '::'
@@ -240,7 +240,7 @@ def FindLocalIP6(Iface, OURIP):
 	try:
 
 		if IsIPv6IP(OURIP) == False:
-			
+
 			try:
 				#Let's make it random so we don't get spotted easily.
 				randIP = "2001:" + ":".join(("%x" % random.randint(0, 16**4) for i in range(7)))
@@ -260,11 +260,11 @@ def FindLocalIP6(Iface, OURIP):
 
 		else:
 			return OURIP
-		
+
 	except socket.error:
 		print(color("[!] Error: %s: Interface not found" % Iface, 1))
 		sys.exit(-1)
-		
+
 # Function used to write captured hashs to a file.
 def WriteData(outfile, data, user):
 	logging.info("[*] Captured Hash: %s" % data)
@@ -337,7 +337,7 @@ def SaveToDb(result):
 
 	cursor = sqlite3.connect(settings.Config.DatabaseFile)
 	cursor.text_factory = sqlite3.Binary  # We add a text factory to support different charsets
-	
+
 	if len(result['cleartext']):
 		fname = '%s-%s-ClearText-%s.txt' % (result['module'], result['type'], result['client'])
 		res = cursor.execute("SELECT COUNT(*) AS count FROM responder WHERE module=? AND type=? AND client=? AND LOWER(user)=LOWER(?) AND cleartext=?", (result['module'], result['type'], result['client'], result['user'], result['cleartext']))
@@ -404,7 +404,7 @@ def SavePoisonersToDb(result):
 	cursor.text_factory = sqlite3.Binary  # We add a text factory to support different charsets
 	res = cursor.execute("SELECT COUNT(*) AS count FROM Poisoned WHERE Poisoner=? AND SentToIp=? AND ForName=? AND AnalyzeMode=?", (result['Poisoner'], result['SentToIp'], result['ForName'], result['AnalyzeMode']))
 	(count,) = res.fetchone()
-        
+
 	if not count:
 		cursor.execute("INSERT INTO Poisoned VALUES(datetime('now'), ?, ?, ?, ?)", (result['Poisoner'], result['SentToIp'], result['ForName'], result['AnalyzeMode']))
 		cursor.commit()
@@ -420,13 +420,13 @@ def SaveDHCPToDb(result):
 	cursor.text_factory = sqlite3.Binary  # We add a text factory to support different charsets
 	res = cursor.execute("SELECT COUNT(*) AS count FROM DHCP WHERE MAC=? AND IP=? AND RequestedIP=?", (result['MAC'], result['IP'], result['RequestedIP']))
 	(count,) = res.fetchone()
-        
+
 	if not count:
 		cursor.execute("INSERT INTO DHCP VALUES(datetime('now'), ?, ?, ?)", (result['MAC'], result['IP'], result['RequestedIP']))
 		cursor.commit()
 
 	cursor.close()
-	
+
 def Parse_IPV6_Addr(data):
 	if data[len(data)-4:len(data)] == b'\x00\x1c\x00\x01':
 		return 'IPv6'
@@ -441,18 +441,18 @@ def IsIPv6(data):
 		return False
 	else:
 		return True
-    
+
 def Decode_Name(nbname):  #From http://code.google.com/p/dpkt/ with author's permission.
 	try:
 		from string import printable
 
 		if len(nbname) != 32:
 			return nbname
-		
+
 		l = []
 		for i in range(0, 32, 2):
 			l.append(chr(((ord(nbname[i]) - 0x41) << 4) | ((ord(nbname[i+1]) - 0x41) & 0xf)))
-		
+
 		return ''.join(list(filter(lambda x: x in printable, ''.join(l).split('\x00', 1)[0].replace(' ', ''))))
 	except:
 		return "Illegal NetBIOS name"
@@ -492,7 +492,7 @@ def banner():
 
 
 def StartupMessage():
-	enabled  = color('[ON]', 2, 1) 
+	enabled  = color('[ON]', 2, 1)
 	disabled = color('[OFF]', 1, 1)
 
 	print('')
@@ -549,7 +549,7 @@ def StartupMessage():
 		print('    %-27s' % "Responder external IP" + color('[%s]' % settings.Config.ExternalIP, 5, 1))
 	if settings.Config.ExternalIP6:
 		print('    %-27s' % "Responder external IPv6" + color('[%s]' % settings.Config.ExternalIP6, 5, 1))
-		
+
 	print('    %-27s' % "Challenge set" + color('[%s]' % settings.Config.NumChal, 5, 1))
 	if settings.Config.Upstream_Proxy:
 		print('    %-27s' % "Upstream Proxy" + color('[%s]' % settings.Config.Upstream_Proxy, 5, 1))

@@ -101,15 +101,25 @@ Edit this file /etc/NetworkManager/NetworkManager.conf and comment the line: `dn
 
 - This tool is not meant to work on Windows.
 
-- For OSX, please note: Responder must be launched with an IP address for the -i flag (e.g. -i YOUR_IP_ADDR). There is no native support in OSX for custom interface binding. Using -i en1 will not work. Also to run Responder with the best experience, run the following as root:
+- For macOS, please note: Responder must be launched with an IP address for the -i flag (e.g. -i YOUR_IP_ADDR). There is no native support in OSX for custom interface binding. Using -i en1 will not work. Also to run Responder with the best experience, run the following as root:
 
-    launchctl unload /System/Library/LaunchDaemons/com.apple.Kerberos.kdc.plist
+```
+launchctl bootout system /System/Library/LaunchDaemons/com.apple.Kerberos.kdc.plist
+launchctl bootout system /System/Library/LaunchDaemons/com.apple.mDNSResponder.plist
+launchctl bootout system /System/Library/LaunchDaemons/com.apple.smbd.plist
+launchctl bootout system /System/Library/LaunchDaemons/com.apple.netbiosd.plist
+```
 
-    launchctl unload /System/Library/LaunchDaemons/com.apple.mDNSResponder.plist
+- Quickstart for macOS:
 
-    launchctl unload /System/Library/LaunchDaemons/com.apple.smbd.plist
-
-    launchctl unload /System/Library/LaunchDaemons/com.apple.netbiosd.plist
+```
+git clone https://github.com/lgandx/Responder
+cd Responder/
+python3 -m venv .
+source bin/activate
+python3 -m pip install netifaces
+sudo python3 Responder.py
+```
 
 ## Usage ##
 

@@ -1,2 +1,0 @@
-aioquic
-netifaces>=0.10.4

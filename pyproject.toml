@@ -1,7 +1,7 @@
 [project]
 name = "responder"
 version = "3.1.7.0"
-package-mode = false
+package-mode = true
 description = "Responder is a LLMNR, NBT-NS and MDNS poisoner, with built-in HTTP/SMB/MSSQL/FTP/LDAP rogue authentication server supporting NTLMv1/NTLMv2/LMv2, Extended Security NTLMSSP and Basic HTTP authentication."
 authors = [
     {name = "Laurent Gaffie", email = "laurent.gaffie@gmail.com "}
@@ -18,7 +18,10 @@ dependencies = [
 
 
 [project.scripts]
-responder = "responder:main"
+responder = "responder.cli:main"
+responder-dump = "responder.tools.dump_hashes:main"
+responder-report = "responder.tools.report:main"
+
 
 [project.urls]
 repository  = "https://github.com/lgandx/Responder"

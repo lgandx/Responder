@@ -1,4 +1,5 @@
 # Responder logs
+responder-logs/
 *.db
 *.txt
 *.log

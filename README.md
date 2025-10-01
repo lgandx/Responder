@@ -1,16 +1,25 @@
-# Responder/MultiRelay #
+# Responder/MultiRelay
 
 IPv6/IPv4 LLMNR/NBT-NS/mDNS Poisoner and NTLMv1/2 Relay.
 
 Author: Laurent Gaffie <laurent.gaffie@gmail.com >  https://g-laurent.blogspot.com
 
+## Installation
 
+Installing `responder` is simple. You can install it directly from the repository:
 
-## Intro ##
+```shell
+pip install 'responder@git+https://github.com/lgandx/responder.git'
+```
 
-Responder is an LLMNR, NBT-NS and MDNS poisoner. 
+### Using [`pipx`](https://pypa.github.io/pipx/)
 
-## Features ##
+It installs Python applications in isolated virtual environments
+```shell
+sudo pipx install --global 'git+https://github.com/lgandx/responder.git'
+```
+
+## Features
 
 - Dual IPv6/IPv4 stack.
 
@@ -72,7 +81,7 @@ DHCP Inform Spoofing. Allows you to let the real DHCP Server issue IP addresses,
 
 This module allows you to see NBT-NS, BROWSER, LLMNR, DNS requests on the network without poisoning any responses. Also, you can map domains, MSSQL servers, workstations passively, see if ICMP Redirects attacks are plausible on your subnet. 
 
-## Hashes ##
+## Hashes
 
 All hashes are printed to stdout and dumped in a unique John Jumbo compliant file, using this format:
 
@@ -87,7 +96,7 @@ Log files are located in the "logs/" folder. Hashes will be logged and printed o
 Additionally, all captured hashed are logged into an SQLite database which you can configure in Responder.conf
 
 
-## Considerations ##
+## Considerations
 
 - This tool listens on several ports: UDP 137, UDP 138, UDP 53, UDP/TCP 389,TCP 1433, UDP 1434, TCP 80, TCP 135, TCP 139, TCP 445, TCP 21, TCP 3141,TCP 25, TCP 110, TCP 587, TCP 3128, Multicast UDP 5355 and 5353.
 
@@ -121,7 +130,7 @@ python3 -m pip install netifaces
 sudo python3 Responder.py
 ```
 
-## Usage ##
+## Usage
 
 First of all, please take a look at Responder.conf and tweak it for your needs.
 
@@ -190,7 +199,7 @@ Options:
                         machines where the WebClient service is running.
 
 
-## Donation ##
+## Donation
 
 You can contribute to this project by donating to the following $XLM (Stellar Lumens) address:
 
@@ -201,7 +210,7 @@ Paypal:
 https://paypal.me/PythonResponder
 
 
-## Acknowledgments ##
+## Acknowledgments
 
 Late Responder development has been possible because of the donations received from individuals and companies.
 
@@ -224,7 +233,7 @@ We would like to thanks those major sponsors:
 Thank you.
 
 
-## Copyright ##
+## Copyright
 
 NBT-NS/LLMNR Responder
 

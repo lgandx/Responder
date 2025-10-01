@@ -16,7 +16,7 @@ pip install 'responder@git+https://github.com/lgandx/responder.git'
 
 It installs Python applications in isolated virtual environments
 ```shell
-pipx install 'git+https://github.com/lgandx/responder.git'
+sudo pipx install --global 'git+https://github.com/lgandx/responder.git'
 ```
 
 ## Features

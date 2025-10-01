@@ -24,9 +24,7 @@ import socket
 import configparser as ConfigParser
 import re
 
-
 # Local library imports
-from responder.src import utils
 from pathlib import Path
 
 __version__ = "Responder 3.1.7.0"
@@ -227,6 +225,8 @@ class Settings:
         self.DontRespondTo = expand_ranges(self.DontRespondTo)
 
     def populate(self, options):
+        # Import utils here to avoid circular import
+        from responder.src import utils
 
         if options.Interface == None and utils.IsOsX() == False:
             print(utils.color("Error: -I <if> mandatory option is missing", 1))
@@ -270,9 +270,28 @@ class Settings:
         self.Krb_On_Off = self.toBool(self.config.get("Responder Core", "Kerberos"))
         self.SNMP_On_Off = self.toBool(self.config.get("Responder Core", "SNMP"))
 
-        # Database Files - Use centralized logging directory instead of config value
-        # We ignore self.config.get('Responder Core', 'Database') and use centralized path
+
         self.DatabaseFile = LOGS_PATH / "Responder.db"
+
+        # Ensure the database directory exists and create database if needed
+        LOGS_PATH.mkdir(exist_ok=True)
+        if not self.DatabaseFile.exists():
+            import sqlite3
+            try:
+                cursor = sqlite3.connect(str(self.DatabaseFile))
+                cursor.execute(
+                    "CREATE TABLE IF NOT EXISTS Poisoned (timestamp TEXT, Poisoner TEXT, SentToIp TEXT, ForName TEXT, AnalyzeMode TEXT)"
+                )
+                cursor.execute(
+                    "CREATE TABLE IF NOT EXISTS responder (timestamp TEXT, module TEXT, type TEXT, client TEXT, hostname TEXT, user TEXT, cleartext TEXT, hash TEXT, fullhash TEXT)"
+                )
+                cursor.execute(
+                    "CREATE TABLE IF NOT EXISTS DHCP (timestamp TEXT, MAC TEXT, IP TEXT, RequestedIP TEXT)"
+                )
+                cursor.commit()
+                cursor.close()
+            except Exception as e:
+                print(utils.color(f"[!] Warning: Could not create database: {e}", 3, 1))
 
         # Log Files - Use centralized logging directory
         self.LogDir = LOGS_PATH

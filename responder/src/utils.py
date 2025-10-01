@@ -34,6 +34,43 @@ import aioquic
 from responder.src import settings
 
 
+def ensure_database_accessible():
+    """Ensure database file and directory are accessible"""
+    try:
+        # Import here to avoid circular imports
+        from responder.src import settings
+
+        # Make sure logs directory exists
+        settings.LOGS_PATH.mkdir(exist_ok=True)
+
+        # Test database access
+        db_path = str(settings.LOGS_PATH / "Responder.db")
+
+        # Try to connect and create tables if needed
+        import sqlite3
+        cursor = sqlite3.connect(db_path)
+        cursor.execute(
+            "CREATE TABLE IF NOT EXISTS Poisoned (timestamp TEXT, Poisoner TEXT, SentToIp TEXT, ForName TEXT, AnalyzeMode TEXT)"
+        )
+        cursor.execute(
+            "CREATE TABLE IF NOT EXISTS responder (timestamp TEXT, module TEXT, type TEXT, client TEXT, hostname TEXT, user TEXT, cleartext TEXT, hash TEXT, fullhash TEXT)"
+        )
+        cursor.execute(
+            "CREATE TABLE IF NOT EXISTS DHCP (timestamp TEXT, MAC TEXT, IP TEXT, RequestedIP TEXT)"
+        )
+        cursor.commit()
+        cursor.close()
+        return True
+
+    except Exception as e:
+        print(f"[!] Warning: Database setup failed: {e}")
+        return False
+
+
+# Call this early to set up database
+ensure_database_accessible()
+
+
 def if_nametoindex2(name):
     if settings.Config.PY2OR3 == "PY2":
         import ctypes
@@ -552,29 +589,20 @@ def SaveToDb(result):
 
 
 def SavePoisonersToDb(result):
+    try:
+        for k in ["Poisoner", "SentToIp", "ForName", "AnalyzeMode"]:
+            if not k in result:
+                result[k] = ""
+        result["SentToIp"] = result["SentToIp"].replace("::ffff:", "")
 
-    for k in ["Poisoner", "SentToIp", "ForName", "AnalyzeMode"]:
-        if not k in result:
-            result[k] = ""
-    result["SentToIp"] = result["SentToIp"].replace("::ffff:", "")
-    cursor = sqlite3.connect(str(settings.LOGS_PATH / "Responder.db"))
-    cursor.text_factory = (
-        sqlite3.Binary
-    )  # We add a text factory to support different charsets
-    res = cursor.execute(
-        "SELECT COUNT(*) AS count FROM Poisoned WHERE Poisoner=? AND SentToIp=? AND ForName=? AND AnalyzeMode=?",
-        (
-            result["Poisoner"],
-            result["SentToIp"],
-            result["ForName"],
-            result["AnalyzeMode"],
-        ),
-    )
-    (count,) = res.fetchone()
-
-    if not count:
-        cursor.execute(
-            "INSERT INTO Poisoned VALUES(datetime('now'), ?, ?, ?, ?)",
+        # Ensure database path is a string
+        db_path = str(settings.LOGS_PATH / "Responder.db")
+        cursor = sqlite3.connect(db_path)
+        cursor.text_factory = (
+            sqlite3.Binary
+        )  # We add a text factory to support different charsets
+        res = cursor.execute(
+            "SELECT COUNT(*) AS count FROM Poisoned WHERE Poisoner=? AND SentToIp=? AND ForName=? AND AnalyzeMode=?",
             (
                 result["Poisoner"],
                 result["SentToIp"],
@@ -582,9 +610,25 @@ def SavePoisonersToDb(result):
                 result["AnalyzeMode"],
             ),
         )
-        cursor.commit()
+        (count,) = res.fetchone()
 
-    cursor.close()
+        if not count:
+            cursor.execute(
+                "INSERT INTO Poisoned VALUES(datetime('now'), ?, ?, ?, ?)",
+                (
+                    result["Poisoner"],
+                    result["SentToIp"],
+                    result["ForName"],
+                    result["AnalyzeMode"],
+                ),
+            )
+            cursor.commit()
+
+        cursor.close()
+    except Exception as e:
+        # Don't crash on database errors, just log and continue
+        print(f"[!] Database error (non-fatal): {e}")
+        pass
 
 
 def SaveDHCPToDb(result):

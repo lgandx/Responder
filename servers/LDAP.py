@@ -59,8 +59,8 @@ def ParseCLDAPNetlogon(data):
 		pass
 
 
-def ParseSearch(data):
-	TID = data[8:9].decode('latin-1')
+def ParseSearch(data, message_id):
+	TID = message_id.decode('latin-1')
 	if re.search(b'Netlogon', data):
 		NbtName = settings.Config.MachineName
 		TID = NetworkRecvBufferPython2or3(data[8:10])
@@ -172,7 +172,7 @@ def ParseCLDAPPacket(data, client, Challenge):
 				return Buffer
 		
 		elif Operation == b'\x63':
-			Buffer = ParseSearch(data)
+			Buffer = ParseSearch(data, data[8:9])
 			print(text('[CLDAP] Sent CLDAP pong to %s.'% client.replace("::ffff:","")))
 			return Buffer
 
@@ -194,6 +194,10 @@ def ParseCLDAPPacket(data, client, Challenge):
 			'cleartext': PassStr,
 			'fullhash': UserString+':'+PassStr,
 			})
+
+	elif data[5:6] == b'\x63':
+		Buffer = ParseSearch(data, data[4:5])
+		return Buffer
 
 
 def ParseLDAPPacket(data, client, Challenge):
@@ -226,7 +230,7 @@ def ParseLDAPPacket(data, client, Challenge):
 				return Buffer
 		
 		elif Operation == b'\x63':
-			Buffer = ParseSearch(data)
+			Buffer = ParseSearch(data, data[8:9])
 			return Buffer
 
 		elif settings.Config.Verbose:
@@ -247,6 +251,11 @@ def ParseLDAPPacket(data, client, Challenge):
 			'cleartext': PassStr,
 			'fullhash': UserString+':'+PassStr,
 			})
+
+	elif data[5:6] == b'\x63':
+		Buffer = ParseSearch(data, data[4:5])
+		return Buffer
+
 
 class LDAP(BaseRequestHandler):
 	def handle(self):

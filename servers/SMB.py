@@ -227,6 +227,14 @@ class SMB1(BaseRequestHandler):  # SMB1 & SMB2 Server class, NTLMSSP
 					buffer1 = StructPython2or3('>i', str(packet1))+str(packet1)
 					self.request.send(NetworkSendBufferPython2or3(buffer1))
 					data = self.request.recv(1024)
+
+				if data[16:18] == b"\x01\x00" and data[4:5] == b"\xfe" and b"NEGOEXTS" in data:
+					head = SMB2Header(Cmd="\x01\x00", MessageId=GrabMessageID(data).decode('latin-1'), PID="\xff\xfe\x00\x00", CreditCharge=GrabCreditCharged(data).decode('latin-1'), Credits=GrabCreditRequested(data).decode('latin-1'), SessionID=GrabSessionID(data).decode('latin-1'),NTStatus="\x16\x00\x00\xc0")
+					packet1 = str(head)+"\x09\x00\x00\x00\x48\x00\x17\x00\xa1\x15\x30\x13\xa0\x03\x0a\x01\x03\xa1\x0c\x06\x0a\x2b\x06\x01\x04\x01\x82\x37\x02\x02\x0a"
+					buffer1 = StructPython2or3('>i', str(packet1))+str(packet1)
+					self.request.send(NetworkSendBufferPython2or3(buffer1))
+					data = self.request.recv(1024)
+
                                 ## Session Setup 2 answer SMBv2.
 				if data[16:18] == b"\x01\x00" and data[4:5] == b"\xfe":
 					head = SMB2Header(Cmd="\x01\x00", MessageId=GrabMessageID(data).decode('latin-1'), PID="\xff\xfe\x00\x00", CreditCharge=GrabCreditCharged(data).decode('latin-1'), Credits=GrabCreditRequested(data).decode('latin-1'), SessionID=GrabSessionID(data).decode('latin-1'),NTStatus="\x16\x00\x00\xc0")

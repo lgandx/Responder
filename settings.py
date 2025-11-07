@@ -139,8 +139,18 @@ class Settings:
 		self.Krb_On_Off      = self.toBool(config.get('Responder Core', 'Kerberos'))
 		self.SNMP_On_Off     = self.toBool(config.get('Responder Core', 'SNMP'))
 
-		# Db File
+		# Db
+		self.Dbms = config.get('Responder Core', 'Dbms')
+
+		# Db File Sqlite
 		self.DatabaseFile    = os.path.join(self.ResponderPATH, config.get('Responder Core', 'Database'))
+
+		# Db Psql
+		self.PsqlHost    = config.get('Responder Core', 'PsqlHost')
+		self.PsqlPort    = config.get('Responder Core', 'PsqlPort')
+		self.PsqlUser    = config.get('Responder Core', 'PsqlUser')
+		self.PsqlPassword    = config.get('Responder Core', 'PsqlPassword')
+		self.PsqlDatabase    = config.get('Responder Core', 'PsqlDatabase')
 
 		# Log Files
 		self.LogDir = os.path.join(self.ResponderPATH, 'logs')

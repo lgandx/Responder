@@ -293,11 +293,19 @@ class Settings:
 		self.MDNSTLD           = ['.LOCAL']
 		self.DontRespondToName = [x+y for x in self.DontRespondToName_ for y in ['']+self.MDNSTLD]
 		#Generate Random stuff for one Responder session
-		self.MachineName       = 'WIN-'+''.join([random.choice('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789') for i in range(11)])
+		machine_name_prefix = config.get("Machine Info", "Machine-Name-Prefix")
+		
+		self.MachineName       = machine_name_prefix+'-'+''.join([random.choice('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789') for i in range(11)])
+
 		self.Username            = ''.join([random.choice('ABCDEFGHIJKLMNOPQRSTUVWXYZ') for i in range(6)])
 		self.Domain            = ''.join([random.choice('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789') for i in range(4)])
 		self.DHCPHostname      = ''.join([random.choice('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789') for i in range(9)])
 		self.DomainName        = self.Domain + '.LOCAL'
+
+		custom_domain_name = config.get("Machine Info", "Domain-Name")
+		if custom_domain_name != "":
+			self.DomainName = custom_domain_name
+
 		self.MachineNego       = ''.join([random.choice('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789') for i in range(9)]) +'$@'+self.DomainName
 		self.RPCPort           = random.randrange(45000, 49999)
 		# Auto Ignore List

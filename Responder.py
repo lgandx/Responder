@@ -306,8 +306,8 @@ options, args = parser.parse_args()
 if not os.geteuid() == 0:
     print(color("[!] Responder must be run as root."))
     sys.exit(-1)
-elif options.OURIP == None and IsOsX() == True:
-    print("\n\033[1m\033[31mOSX detected, -i mandatory option is missing\033[0m\n")
+elif options.OURIP == None and IsMacOS() == True:
+    print("\n\033[1m\033[31mMacOS detected, -i mandatory option is missing\033[0m\n")
     parser.print_help()
     exit(-1)
     

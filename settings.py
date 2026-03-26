@@ -99,7 +99,7 @@ class Settings:
 
 	def populate(self, options):
 
-		if options.Interface == None and utils.IsOsX() == False:
+		if options.Interface == None and utils.IsMacOS() == False:
 			print(utils.color("Error: -I <if> mandatory option is missing", 1))
 			sys.exit(-1)
 

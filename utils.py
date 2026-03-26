@@ -183,10 +183,10 @@ def RespondWithIP6():
 
 def OsInterfaceIsSupported():
 	if settings.Config.Interface != "Not set":
-		return not IsOsX()
+		return not IsMacOS()
 	return False
 
-def IsOsX():
+def IsMacOS():
 	return sys.platform == "darwin"
 
 def IsIPv6IP(IP):
@@ -204,7 +204,7 @@ def FindLocalIP(Iface, OURIP):
 		return '0.0.0.0'
 
 	try:
-		if IsOsX():
+		if IsMacOS():
 			return OURIP
 			
 		elif IsIPv6IP(OURIP):	

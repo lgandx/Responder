@@ -29,9 +29,9 @@ from impacket.smbconnection import SMBConnection
 
 class DCERPCStringBinding:
     parser = re.compile(r'(?:([a-fA-F0-9-]{8}(?:-[a-fA-F0-9-]{4}){3}-[a-fA-F0-9-]{12})@)?' # UUID (opt.)
-                        +'([_a-zA-Z0-9]*):' # Protocol Sequence
-                        +'([^\[]*)' # Network Address (opt.)
-                        +'(?:\[([^\]]*)\])?') # Endpoint and options (opt.)
+                        +r'([_a-zA-Z0-9]*):' # Protocol Sequence
+                        +r'([^\[]*)' # Network Address (opt.)
+                        +r'(?:\[([^\]]*)\])?') # Endpoint and options (opt.)
 
     def __init__(self, stringbinding):
         match = DCERPCStringBinding.parser.match(stringbinding)

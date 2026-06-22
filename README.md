@@ -73,7 +73,7 @@ This version includes:
 
 ```bash
 sudo apt-get update
-sudo apt-get install python3 python3-pip python3-netifaces
+sudo apt-get install python3 python3-pip python3-netifaces python3-dev
 ```
 
 ### Install Responder

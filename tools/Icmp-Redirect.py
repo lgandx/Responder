@@ -17,7 +17,7 @@
 import socket
 import struct
 import optparse
-import pipes
+import shlex
 import sys
 import codecs
 from socket import *
@@ -264,9 +264,9 @@ def FindWhatToDo(ToThisHost2):
         exit()
 
 def RunThisInLoop(host, host2, ip):
-    dns1 = pipes.quote(host)
-    dns2 = pipes.quote(host2)
-    ouripadd = pipes.quote(ip)
+    dns1 = shlex.quote(host)
+    dns2 = shlex.quote(host2)
+    ouripadd = shlex.quote(ip)
     call("iptables -A OUTPUT -p ICMP -j DROP && iptables -t nat -A PREROUTING -p udp --dst "+dns1+" --dport 53 -j DNAT --to-destination "+ouripadd+":53", shell=True)
     call("iptables -A OUTPUT -p ICMP -j DROP && iptables -t nat -A PREROUTING -p udp --dst "+dns2+" --dport 53 -j DNAT --to-destination "+ouripadd+":53", shell=True)
     print("[+]Automatic mode enabled\nAn iptable rules has been added for both DNS servers.")

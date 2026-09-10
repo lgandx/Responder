@@ -483,11 +483,13 @@ def SaveToDb(result):
 				settings.Config.AutoIgnoreList.append(result['client'])
 				print(color('[*] Adding client %s to auto-ignore list' % result['client'], 4, 1))
 		elif len(result['cleartext']):
-			print(color('[*] Skipping previously captured cleartext password for %s' % result['user'], 3, 1))
-			text('[*] Skipping previously captured cleartext password for %s' % result['user'])
+			if not settings.Config.Quiet_Mode:
+				print(color('[*] Skipping previously captured cleartext password for %s' % result['user'], 3, 1))
+				text('[*] Skipping previously captured cleartext password for %s' % result['user'])
 		else:
-			print(color('[*] Skipping previously captured hash for %s' % result['user'], 3, 1))
-			text('[*] Skipping previously captured hash for %s' % result['user'])
+			if not settings.Config.Quiet_Mode:
+				print(color('[*] Skipping previously captured hash for %s' % result['user'], 3, 1))
+				text('[*] Skipping previously captured hash for %s' % result['user'])
 			cursor.execute("UPDATE responder SET timestamp=datetime('now') WHERE user=? AND client=?", (result['user'], result['client']))
 			cursor.commit()
 		cursor.close()

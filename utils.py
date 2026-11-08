@@ -26,6 +26,7 @@ import datetime
 import codecs
 import struct
 import random
+import collections
 try:
 	import netifaces
 except:
@@ -90,6 +91,14 @@ except:
 
 # Thread lock for database operations to prevent "database is locked" errors
 _db_lock = threading.Lock()
+
+# Events already written to the Poisoned table. The poisoner handlers see the
+# same request many times; without this every repeat takes _db_lock and opens a
+# new SQLite connection just to run a SELECT that finds an existing row. Bounded
+# LRU so a long-running instance cannot grow the cache without bound.
+_poisoners_db_cache = collections.OrderedDict()
+_poisoners_db_cache_lock = threading.Lock()
+_POISONERS_DB_CACHE_MAX = 4096
 
 def color(txt, code = 1, modifier = 0):
 	if txt.startswith('[*]'):
@@ -498,19 +507,34 @@ def SavePoisonersToDb(result):
 		if not k in result:
 			result[k] = ''
 	result['SentToIp'] = result['SentToIp'].replace("::ffff:","")
-	
-	with _db_lock:
-		cursor = sqlite3.connect(settings.Config.DatabaseFile, timeout=10)
-		cursor.execute('PRAGMA journal_mode=WAL')
-		cursor.text_factory = sqlite3.Binary  # We add a text factory to support different charsets
-		res = cursor.execute("SELECT COUNT(*) AS count FROM Poisoned WHERE Poisoner=? AND SentToIp=? AND ForName=? AND AnalyzeMode=?", (result['Poisoner'], result['SentToIp'], result['ForName'], result['AnalyzeMode']))
-		(count,) = res.fetchone()
-	        
-		if not count:
-			cursor.execute("INSERT INTO Poisoned VALUES(datetime('now'), ?, ?, ?, ?)", (result['Poisoner'], result['SentToIp'], result['ForName'], result['AnalyzeMode']))
-			cursor.commit()
 
-		cursor.close()
+	cache_key = (result['Poisoner'], result['SentToIp'], result['ForName'], result['AnalyzeMode'])
+	with _poisoners_db_cache_lock:
+		if cache_key in _poisoners_db_cache:
+			_poisoners_db_cache.move_to_end(cache_key)
+			return
+		_poisoners_db_cache[cache_key] = None
+		if len(_poisoners_db_cache) > _POISONERS_DB_CACHE_MAX:
+			_poisoners_db_cache.popitem(last=False)
+
+	try:
+		with _db_lock:
+			cursor = sqlite3.connect(settings.Config.DatabaseFile, timeout=10)
+			cursor.execute('PRAGMA journal_mode=WAL')
+			cursor.text_factory = sqlite3.Binary  # We add a text factory to support different charsets
+			res = cursor.execute("SELECT COUNT(*) AS count FROM Poisoned WHERE Poisoner=? AND SentToIp=? AND ForName=? AND AnalyzeMode=?", (result['Poisoner'], result['SentToIp'], result['ForName'], result['AnalyzeMode']))
+			(count,) = res.fetchone()
+
+			if not count:
+				cursor.execute("INSERT INTO Poisoned VALUES(datetime('now'), ?, ?, ?, ?)", (result['Poisoner'], result['SentToIp'], result['ForName'], result['AnalyzeMode']))
+				cursor.commit()
+
+			cursor.close()
+	except Exception:
+		# Do not cache a failed write, so a later event can retry it.
+		with _poisoners_db_cache_lock:
+			_poisoners_db_cache.pop(cache_key, None)
+		raise
 
 def SaveDHCPToDb(result):
 	for k in [ 'MAC', 'IP', 'RequestedIP']:

@@ -18,11 +18,13 @@ import asyncio
 import optparse
 import ssl
 try:
-	from SocketServer import TCPServer, UDPServer, ThreadingMixIn
+	from SocketServer import TCPServer, UDPServer
 except:
-	from socketserver import TCPServer, UDPServer, ThreadingMixIn
+	from socketserver import TCPServer, UDPServer
 from threading import Thread
 from utils import *
+from servers.bounded import BoundedThreadingUDPMixIn, BoundedThreadingTCPMixIn
+from servers.rate_limit import MDNSRequestFilter
 import struct
 banner()
 
@@ -327,7 +329,7 @@ CreateResponderDb()
 
 Have_IPv6 = settings.Config.IPv6
 
-class ThreadingUDPServer(ThreadingMixIn, UDPServer):
+class ThreadingUDPServer(BoundedThreadingUDPMixIn, UDPServer):
 	def server_bind(self):
 		if OsInterfaceIsSupported():
 			try:
@@ -346,7 +348,7 @@ class ThreadingUDPServer(ThreadingMixIn, UDPServer):
 				pass
 		UDPServer.server_bind(self)
 
-class ThreadingTCPServer(ThreadingMixIn, TCPServer):
+class ThreadingTCPServer(BoundedThreadingTCPMixIn, TCPServer):
 	def server_bind(self):
 		if OsInterfaceIsSupported():
 			try:
@@ -365,7 +367,7 @@ class ThreadingTCPServer(ThreadingMixIn, TCPServer):
 				pass
 		TCPServer.server_bind(self)
 
-class ThreadingTCPServerAuth(ThreadingMixIn, TCPServer):
+class ThreadingTCPServerAuth(BoundedThreadingTCPMixIn, TCPServer):
 	def server_bind(self):
 		if OsInterfaceIsSupported():
 			try:
@@ -385,7 +387,7 @@ class ThreadingTCPServerAuth(ThreadingMixIn, TCPServer):
 		self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_LINGER, struct.pack('ii', 1, 0))
 		TCPServer.server_bind(self)
 	
-class ThreadingUDPDHCPv6Server(ThreadingMixIn, UDPServer):
+class ThreadingUDPDHCPv6Server(BoundedThreadingUDPMixIn, UDPServer):
 	allow_reuse_address = True
 	address_family = socket.AF_INET6
 	
@@ -413,7 +415,13 @@ class ThreadingUDPDHCPv6Server(ThreadingMixIn, UDPServer):
 # Set address family to IPv6
 ThreadingUDPDHCPv6Server.address_family = socket.AF_INET6
 
-class ThreadingUDPMDNSServer(ThreadingMixIn, UDPServer):
+class ThreadingUDPMDNSServer(BoundedThreadingUDPMixIn, UDPServer):
+	_mdns_filter = MDNSRequestFilter()
+
+	def should_drop_request(self, request, client_address):
+		data, _ = request
+		return self._mdns_filter.should_drop(data, client_address)
+
 	def server_bind(self):
 		MADDR = "224.0.0.251"
 		MADDR6 = 'ff02::fb'
@@ -447,7 +455,7 @@ class ThreadingUDPMDNSServer(ThreadingMixIn, UDPServer):
 				pass
 		UDPServer.server_bind(self)
 
-class ThreadingUDPLLMNRServer(ThreadingMixIn, UDPServer):
+class ThreadingUDPLLMNRServer(BoundedThreadingUDPMixIn, UDPServer):
 	def server_bind(self):
 		MADDR  = '224.0.0.252'
 		MADDR6 = 'FF02:0:0:0:0:0:1:3'
